@@ -1,0 +1,150 @@
+#!/bin/bash
+#script du 16 mars 2017 Marc Bansse
+#Ce script permet de lancer  des commandes pxe pour un/plusieurs postes.
+#ces commandes pxe peuvent être des commandes de restauration de postes par clonezilla, d'une image disque située sur un partage samba.
+#ces commandes sont à mettre dans le répertoire pxeperso. Un modèle y figure déjà
+#variables
+TEMP="/tftpboot/pxelinux.cfg/clonezilla-auto/temp"
+PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
+REP="/tftpboot/pxelinux.cfg/clonezilla-auto/"
+#Le répertoire pxeperso contient des commandes pxe déjà renseignées, pour ne pas à avoir à entrer ip,login,mdp et nom de l'imag à déployer;
+#
+
+
+#On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire pxeperso
+# On affiche une liste des commandes personnalises dans le répertoire): on demande laquelle sera à appliquer: 
+#il faudra donc creer un fichier commande-pxe pour chaque type de poste (appelé M72-tertaire par ex).
+clear 
+echo " Ce script permet d'envoyer unz consigne de boot par pxe, par exemple restaurer une image clonezilla existante  sur un/plusieurs postes"
+echo "Les postes doivent avoir le wakeonlan d'activé, un boot par défaut en pxe "
+echo "recopier parmi la liste suivante la commande pxe à envoyer ( type d'image à restaurer dans le cadre de clonezilla) "
+#la liste des fichiers de commande pxe est placée dans le répertoire pxeperso, son contenu va être lu ici.
+ls  "$PXE_PERSO" 
+read choix  
+
+#On vérifie que ce qui a té tapé correspond bien à une image existante
+VERIF=$(ls "$PXE_PERSO" |grep "$choix")  
+#si ce qui a été  tapé ne correspond à aucune ligne de la liste, alors le script s'arrête.
+if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+exit
+else
+echo "l'image appelée "$choix" sera restaurée sur les postes"
+fi
+
+#On a placé dans le répertoire clonezilla-auto un export des entrées du dhcp
+#on demande à l'utilisateur de rentrer les trois premiers octets du parc à restaurer, l'adresse ip complète du poste, ou  le début du nom des postes 
+echo "entrer les trois premiers octets du parc à cloner (ex 172.20.50.), le début du  nom des postes (ex "s112-" ) ou l'adresse ip complète du poste" 
+read debutip
+
+# on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
+cat  "$REP"/inventaire/inventaire* |grep "$debutip" > "$TEMP"/exportauto
+#cat  /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
+
+#############################################################################
+#Il faut maintenant confirmer que les postes à restaurer sont bien ceux qui sont attendus.
+echo " vous avez choisi les postes dont l'ip est/commence par "$debutip" "
+cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/posteverif
+
+POSTES=$(cat "$TEMP"/posteverif)
+
+#si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
+if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
+exit
+else echo "les postes suivants seront effacés puis restaurés, si vous souhaitez enlever un/plusieurs  poste(s) de cette liste, il faut ouvrir un deuxième terminal et suprimer les lignes concernées du fichier temp/exportauto"
+echo "$POSTES"
+echo "taper "oui" pour continuer"
+read REPONSE
+fi
+###########################################################################################################
+
+#le fichier exportauto a été vérifié et ne contient maintenant que les postes qui doivent bien être restaurés
+#on supprime les deux premières colonnes contenant le nom et l'ip pour ne garder que la troisième colonne contenant l'adresse mac et le nom de poste.
+cut -d';' -s -f3   "$TEMP"/exportauto > "$TEMP"/liste1
+cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/postes
+
+
+#Il faut maintenant confirmer que les postes à restaurer sont bien ceux qui sont attendus.
+#echo " vous avez choisi les postes dont l'ip est/commence par "$debutip" "
+#POSTES=$(cat "$TEMP"/postes)
+
+#si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
+#if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
+#exit
+#else echo "les postes suivants seront effacés puis restaurés"
+#echo "$POSTES"
+#echo "taper "oui" pour continuer"
+#read REPONSE
+#fi
+
+# On continue le script uniquement si la réponse oui est faire. tout autre choix provoque l'arret du script.
+
+if [ "$REPONSE" = oui ]; then  echo "On lance le clonage" 
+else
+ echo "Clonage annulé"
+ #on efface les fichiers temporaires créés
+rm -f "$TEMP"/*
+ exit  
+fi
+
+
+# on modifie  le fichier liste1 pour remplacer les ":" par des "-" pour la création du fichier 01-suitedel'adressemac
+sed 's/\:/\-/g' "$TEMP"/liste1 > "$TEMP"/listeok
+
+
+
+
+#On place la première adresse mac de la listemac  dans une variable pour créer ensuite le fichier de commande pxe personnalisé du poste.
+mac=$(sed -n "1p" "$TEMP"/listeok)
+
+#On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
+mac2=$(sed -n "1p" "$TEMP"/liste1)
+
+#On place le nom du client pour allumer/reboot le poste avec le script start_poste.sh 
+NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
+
+
+
+#on  créer notre boucle ici: On va supprimer la première ligne de la liste des adresses mac. Dès que le fichier contenant les adresses mac est vide, il y a arret de la boucle
+until [ "$mac" = "" ]
+do 
+ 
+#le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
+cp "$PXEPERSOE"/"$choix" /tftpboot/pxelinux.cfg/01-"$mac"
+
+#Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
+#le format du wakeonlan doit être wakeonlan 08:1a:
+wakeonlan "$mac2"
+/usr/share/se3/scripts/start_poste "$NOM_CLIENT" reboot
+#la première ligne du fichier listeok est à supprimer pour que l'opération continue avec les adresses mac suivantes
+sed -i '1d' "$TEMP"/listeok
+sed -i '1d' "$TEMP"/liste1
+sed -i '1d' "$TEMP"/postes
+
+#On actualise la variable.
+mac=$(sed -n "1p" "$TEMP"/listeok)
+
+#On pactualise la variable.
+mac2=$(sed -n "1p" "$TEMP"/liste1)
+#On actualise la variable.
+NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
+
+done
+
+
+
+if [ "$mac" = "" ]; then  echo "On attends deux minutes pour que les postes aient le temps de booter en pxe et de récupérer les consignes"
+sleep 2m
+else echo " ça continue..."
+# Normalement on ne devrait pas avoir  besoin de du if, car cette partie est lancée seulement quand la boucle est terminée
+fi
+
+
+#On attend deux minutes que les ordinateurs se lancent, recoivent leur instruction pour ensuite effacer les fichiers nommés avec l'adresse mac ou le poste se clonera en boucle.
+#echo "On attends deux minutes pour que les postes aient le temps de booter en pxe et de récupérer les consignes"
+#sleep 2m
+
+#on efface tous les fichiers commecnant par 01- , seuls les fichiers générés par le script  sont donc effacés.
+rm -f /tftpboot/pxelinux.cfg/01*
+rm -f /tftpboot/pxelinux.cfg/clonezilla-auto/temp/*
+exit
+
