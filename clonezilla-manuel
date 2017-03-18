@@ -7,7 +7,13 @@ CHEMIN="/tftpboot/pxelinux.cfg/clonezilla-auto"
 LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
 IPSE3="172.20.0.2"
 
-#On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire image
+DATE=`date +%Y-%m-%d-%H-%M`
+
+
+
+mkdir -p "$CHEMIN"/log/"$DATE"
+
+ #On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire image
 # On affiche une liste de type d images ( dans un répertoire): on demande quel type d'image sera à restaurer: il faudra donc creer un fichier commande-pxe-parc (appelé M72-tertaire par ex) pour chaque type d image.
 clear 
 echo " Ce script permet de restaurer une image clonezilla existante  sur un/plusieurs postes"
@@ -56,7 +62,7 @@ label disk2
   localboot 0x81
 
 label clonezilla
-#MENU LABEL Clonezilla restore xpv1 (partimag)
+#MENU LABEL Clonezilla restore "$choix" (partimag)
 KERNEL clonezilla64/vmlinuz
 APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$IPSAMBA/$PARTAGE /home/partimag/ -o user=$USER,password=$MDP "  ocs_live_run="ocs-sr  -e1 auto -e2  -r  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$IPSE3/clonezilla64/filesystem.squashfs
 
@@ -79,7 +85,7 @@ read debutip
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
 cat  /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
 
-#on ne garde que la deuxième colonne pour avoir la liste des postes cloné
+#on ne garde que la deuxième colonne pour avoir la liste des postessensés être clonés.
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
 
 
@@ -89,7 +95,7 @@ echo " ATTENTION, le mdp du partag samba va apparaitre très brievement en clair
 POSTES=$(cat "$TEMP"/verifpostes)
 
 
-
+clear
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
@@ -106,6 +112,7 @@ else echo "On continue"
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes2
 POSTES2=$(cat "$TEMP"/verifpostes2)
 
+clear
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
@@ -115,7 +122,7 @@ echo "taper "oui" pour continuer ou autre chose pour quitter"
 read REPONSE2
 fi
 
-# On continue le script uniquement si la réponse oui est faire. tout autre choix provoque l'arret du script.
+# On continue le script uniquement si la réponse oui est faite. tout autre choix provoque l'arret du script.
 
 if [ "$REPONSE2" = oui ]; then  echo "On lance le clonage" 
 else
@@ -126,15 +133,19 @@ rm -f "$TEMP"/*
 fi
 
 #ici, le fichier exportauto a été  édité et contient donc la véritable liste des postes à restaurer
-cp "$TEMP"/exportauto "$CHEMIN"/log/
+cp "$TEMP"/exportauto "$CHEMIN"/log/"$DATE"/
+
 #on supprime les deux premières colonnes contenant le nom et l'ip pour ne garder que la troisième colonne contenant l'adresse mac et le nom de poste.
 cut -d';' -s -f3   "$TEMP"/exportauto > "$TEMP"/liste1
+cp "$TEMP"/liste1 "$CHEMIN"/log/"$DATE"/
+
 #on ne garde que la deuxième colonne pour avoir la liste des postes cloné
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/postes
+cp "$TEMP"/postes "$CHEMIN"/log/"$DATE"
 
 # on modifie  le fichier liste1 pour remplacer les ":" par des "-" pour la création du fichier 01-suitedel'adressemac
 sed 's/\:/\-/g' "$TEMP"/liste1 > "$TEMP"/listeok
-
+cp "$TEMP"/listeok "$CHEMIN"/log/"$DATE"
 
 
 
@@ -143,7 +154,7 @@ mac=$(sed -n "1p" "$TEMP"/listeok)
 #On met en variable le nom du premier poste de la liste pour le lancer avec le script se3 lance_poste
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
 #On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
-mac2=$(sed -n "1p" /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste1)
+mac2=$(sed -n "1p" "$TEMP"/liste1)
 
 
 #on  créer notre boucle ici: On va supprimer la première ligne de la liste des adresses mac. Dès que le fichier contenant les adresses mac est vide, il y a arret de la boucle
@@ -152,13 +163,13 @@ do
  
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/01-"$mac"
-cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/01-"$mac"
+cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/"$DATE"/01-"$mac"
 
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
 #le format du wakeonlan doit être wakeonlan 08:1a:
 wakeonlan "$mac2"
-echo "wakeonlan $mac2" > "$CHEMIN"/log/signalwakeonlan
 #si le poste est déjà allumé sous windows, on lui envoie un signal de reboot
+echo "$NOM_CLIENT" > "$CHEMIN"/log/"$DATE"/"$NOM_CLIENT"
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" reboot
 
 
@@ -173,7 +184,7 @@ mac=$(sed -n "1p" "$TEMP"/listeok)
 #On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
 mac2=$(sed -n "1p" /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste1)
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
-
+echo "$NOM_CLIENT" > "$CHEMIN"/log/NOM_CLIENT
 
 done
 
