@@ -109,13 +109,11 @@ POSTES2=$(cat "$TEMP"/verifpostes2)
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
-else echo "les postes suivants seront effacés puis restaurés, si vous souhaitez enlever des postes de la liste, ouvrir un deuxième terminale et supprimer les lignes relatives du fichier temp/exportauto"
+else echo " Etes-vous sur de vouloir restaurer ces postes?"
 echo "$POSTES2"
 echo "taper "oui" pour continuer ou autre chose pour quitter"
 read REPONSE2
 fi
-
-
 
 # On continue le script uniquement si la réponse oui est faire. tout autre choix provoque l'arret du script.
 
