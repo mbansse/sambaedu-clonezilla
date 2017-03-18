@@ -15,8 +15,8 @@ echo "Les images existantes doivent être stockées sur un partage samba (se3 ou
 echo "Les postes doivent avoir le wakeonlan d'activé, un boot par défaut en pxe "
 echo "recopier parmi la liste suivante le type d'image à restaurer, "
 
-#la liste des images placées dans le rpertoire samba est mis dans un fichier image, placé dans liste-image
-cat  /tftpboot/pxelinux.cfg/clonezilla-auto/liste-image/liste
+#la liste des images placées dans le répertoire samba est mis dans un fichier image, placé dans liste-image
+cat /tftpboot/pxelinux.cfg/clonezilla-auto/liste-image/liste
 read choix
 
 #On vérifie que ce qui a té tapé correspond bien à une image existante
