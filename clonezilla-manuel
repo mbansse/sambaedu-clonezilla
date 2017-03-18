@@ -101,12 +101,13 @@ fi
 
 
 if [ "$REPONSE" = nano ]; then  nano "$TEMP"/exportauto 
-else
- 
+else echo "On continue"
  fi
+
+
 # On continue le script uniquement si la réponse oui est faire. tout autre choix provoque l'arret du script.
 
-if [ "$REPONSE" = oui ]; then  echo "On lance le clonage" 
+if [ "$REPONSE2" = oui ]; then  echo "On lance le clonage" 
 else
  echo "Clonage annulé"
  #on efface les fichiers temporaires créés
