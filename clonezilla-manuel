@@ -93,7 +93,7 @@ POSTES=$(cat "$TEMP"/verifpostes)
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
-else echo "les postes suivants seront effacés puis restaurés, si vous souhaitez enlever des postes de la liste, ouvrir un deuxième terminale et supprimer les lignes relatives du fichier temp/exportauto"
+else echo "les postes suivants seront effacés puis restaurés, "
 echo "$POSTES"
 echo "taper "oui" pour continuer ou "nano" pour éditer le fichier exportauto"
 read REPONSE
@@ -157,6 +157,7 @@ cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/01-"$mac"
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
 #le format du wakeonlan doit être wakeonlan 08:1a:
 wakeonlan "$mac2"
+echo "wakeonlan $mac2" > "$CHEMIN"/log/signalwakeonlan
 #si le poste est déjà allumé sous windows, on lui envoie un signal de reboot
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" reboot
 
