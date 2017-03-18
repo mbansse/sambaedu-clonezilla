@@ -123,6 +123,7 @@ do
  
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp "$PXE_PERSO"/"$choix" /tftpboot/pxelinux.cfg/01-"$mac"
+chmod 644  /tftpboot/pxelinux.cfg/01-*
 cp "$PXE_PERSO"/"$choix" /tftpboot/pxelinux.cfg/clonezilla-auto/log/"$DATE"/01-"$mac"-"$NOM_CLIENT"
 
 

@@ -166,7 +166,8 @@ do
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/01-"$mac"
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/"$DATE"/01-"$mac"-"$NOM_CLIENT"
-
+chmod 644 /tftpboot/pxelinux.cfg/01-*
+ 
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
 #le format du wakeonlan doit être wakeonlan 08:1a:
 wakeonlan "$mac2"
