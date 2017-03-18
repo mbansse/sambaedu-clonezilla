@@ -3,10 +3,8 @@
 #variables
 TEMP="/tftpboot/pxelinux.cfg/clonezilla-auto/temp"
 CHEMIN="/tftpboot/pxelinux.cfg/clonezilla-auto"
-#REP_IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/image"
 LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
 IPSE3="172.20.0.2"
-
 DATE=`date +%Y-%m-%d-%H-%M`
 
 
@@ -16,10 +14,10 @@ mkdir -p "$CHEMIN"/log/"$DATE"
  #On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire image
 # On affiche une liste de type d images ( dans un répertoire): on demande quel type d'image sera à restaurer: il faudra donc creer un fichier commande-pxe-parc (appelé M72-tertaire par ex) pour chaque type d image.
 clear 
-echo " Ce script permet de restaurer une image clonezilla existante  sur un/plusieurs postes"
+echo "Ce script permet de restaurer une image clonezilla existante  sur un/plusieurs postes"
 echo "Les images existantes doivent être stockées sur un partage samba (se3 ou autre)"
 echo "Les postes doivent avoir le wakeonlan d'activé, un boot par défaut en pxe "
-echo "recopier parmi la liste suivante le type d'image à restaurer, "
+echo "recopier parmi la liste suivante le type d'image à restaurer. "
 
 #la liste des images placées dans le répertoire samba est mis dans un fichier image, placé dans liste-image
 cat /tftpboot/pxelinux.cfg/clonezilla-auto/liste-image/liste
@@ -38,11 +36,11 @@ fi
 #L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp
 echo "Entrer l'ip du partage samba (ex  172.20.0.6)"
 read IPSAMBA
-echo "entrer le nom du partage samba"
+echo "entrer le nom du partage samba (ex 'partimag') "
 read PARTAGE
 echo "Entrer le nom d'un utilisateur autorisé à lire sur le partage"
 read USER
-echo "Entrer le mot de passe de l'utilisateur"
+echo "Entrer le mot de passe de l'utilisateur (attention, apparait en clair sur cet écran)"
 read MDP
 
 # On peut maintenant créer un fichier de commande pxe personnalisé pour le clonage clonezilla
@@ -79,18 +77,20 @@ EOF
 
 #on a placé dans le répertoire clonezilla-auto/inventaire un export des entrées du dhcp fait avec l'interface se3
 #on demande à l'utilisateur de rentrer les trois premiers octets du parc à restaurer 
-echo "entrer les trois premiers octets du parc à cloner (ex 172.20.50.) ou l'adresse ip/nom  du poste (ex 172.20.50.101)" 
+echo "entrer les premiers octets du parc à cloner (ex 172.20.50.) ou l'adresse ip/nom  du poste (ex 172.20.50.101)" 
 read debutip
 
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
 cat  /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
+#On a créé un fichier "exportauto" à partir di fichier d'inventaire dhcp qui contient trois colonne ip;nom-netbios;mac   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0) 
 
-#on ne garde que la deuxième colonne pour avoir la liste des postessensés être clonés.
+#on ne garde que la deuxième colonne pour avoir la liste des postes sensés être clonés qu'il faudra vérifier.
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
 
 
 #Il faut maintenant confirmer que les postes à restaurer sont bien ceux qui sont attendus.
 echo " vous avez choisi les postes dont l'ip est/commence par "$debutip" "
+
 echo " ATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide"
 POSTES=$(cat "$TEMP"/verifpostes)
 
@@ -99,9 +99,9 @@ clear
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
-else echo "les postes suivants seront effacés puis restaurés, "
+else echo "les postes suivants seront effacés puis restaurés. "
 echo "$POSTES"
-echo "taper "oui" pour continuer ou "nano" pour éditer le fichier exportauto"
+echo "taper '"oui"' pour continuer ou '"nano"' pour éditer le fichier exportauto"
 read REPONSE
 fi
 
@@ -118,7 +118,8 @@ if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
 else echo " Etes-vous sur de vouloir restaurer ces postes?"
 echo "$POSTES2"
-echo "taper "oui" pour continuer ou autre chose pour quitter"
+echo " ATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide"
+echo "taper '"oui"' pour continuer ou autre chose pour quitter"
 read REPONSE2
 fi
 
@@ -133,6 +134,7 @@ rm -f "$TEMP"/*
 fi
 
 #ici, le fichier exportauto a été  édité et contient donc la véritable liste des postes à restaurer
+#On le sauvegarde dans log pour vérifier en cas de problème.
 cp "$TEMP"/exportauto "$CHEMIN"/log/"$DATE"/
 
 #on supprime les deux premières colonnes contenant le nom et l'ip pour ne garder que la troisième colonne contenant l'adresse mac et le nom de poste.
@@ -163,13 +165,13 @@ do
  
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/01-"$mac"
-cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/"$DATE"/01-"$mac"
+cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/"$DATE"/01-"$mac"-"$NOM_CLIENT"
 
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
 #le format du wakeonlan doit être wakeonlan 08:1a:
 wakeonlan "$mac2"
 #si le poste est déjà allumé sous windows, on lui envoie un signal de reboot
-echo "$NOM_CLIENT" > "$CHEMIN"/log/"$DATE"/"$NOM_CLIENT"
+#echo "$NOM_CLIENT" > "$CHEMIN"/log/"$DATE"/"$NOM_CLIENT"  #inutile puisqu'un fichier avec mac et nom_client est écrit plus haut.
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" reboot
 
 
@@ -184,7 +186,7 @@ mac=$(sed -n "1p" "$TEMP"/listeok)
 #On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
 mac2=$(sed -n "1p" /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste1)
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
-echo "$NOM_CLIENT" > "$CHEMIN"/log/NOM_CLIENT
+
 
 done
 
