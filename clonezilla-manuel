@@ -2,6 +2,7 @@
 # Script du 15 Mars 2017, Marc Bansse 
 #variables
 TEMP="/tftpboot/pxelinux.cfg/clonezilla-auto/temp"
+CHEMIN="/tftpboot/pxelinux.cfg/clonezilla-auto"
 #REP_IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/image"
 LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
 IPSE3="172.20.0.2"
@@ -107,6 +108,7 @@ rm -f "$TEMP"/*
 fi
 
 #ici, le fichier exportauto a été  édité et contient donc la véritable liste des postes à restaurer
+cp "$TEMP"/exportauto "$CHEMIN"/log/
 #on supprime les deux premières colonnes contenant le nom et l'ip pour ne garder que la troisième colonne contenant l'adresse mac et le nom de poste.
 cut -d';' -s -f3   "$TEMP"/exportauto > "$TEMP"/liste1
 #on ne garde que la deuxième colonne pour avoir la liste des postes cloné
@@ -132,6 +134,7 @@ do
  
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/01-"$mac"
+cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/clonezilla-auto/log/01-"$mac"
 
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
 #le format du wakeonlan doit être wakeonlan 08:1a:
