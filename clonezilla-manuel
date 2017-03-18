@@ -88,15 +88,22 @@ echo " vous avez choisi les postes dont l'ip est/commence par "$debutip" "
 echo " ATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide"
 POSTES=$(cat "$TEMP"/verifpostes)
 
+
+
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
 else echo "les postes suivants seront effacés puis restaurés, si vous souhaitez enlever des postes de la liste, ouvrir un deuxième terminale et supprimer les lignes relatives du fichier temp/exportauto"
 echo "$POSTES"
-echo "taper "oui" pour continuer"
+echo "taper "oui" pour continuer ou "nano" pour éditer le fichier exportauto"
 read REPONSE
 fi
 
+
+if [ "$REPONSE" = nano ]; then  nano "$TEMP"/exportauto 
+else
+ 
+ fi
 # On continue le script uniquement si la réponse oui est faire. tout autre choix provoque l'arret du script.
 
 if [ "$REPONSE" = oui ]; then  echo "On lance le clonage" 
