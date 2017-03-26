@@ -11,6 +11,11 @@ DATE=`date +%Y-%m-%d-%H-%M`
 
 #Le répertoire pxeperso contient des commandes pxe déjà renseignées, pour ne pas à avoir à entrer ip,login,mdp et nom de l'imag à déployer;
 
+#On efface le contenu du répertoire temp au cas où un précédent clonage aurait été arrêté manuellement
+rm -Rf "$TEMP"/*
+#on efface l'inventaire qui n'est peut-être pas à jour
+rm -f "$CHEMIN"/inventaire/inventaire*
+
 #création du répertoire contenant la date du lancement de script pour les logs
 mkdir "$CHEMIN"/log/"$DATE"
 
@@ -33,6 +38,10 @@ exit
 else
 echo "l'image appelée "$choix" sera restaurée sur les postes"
 fi
+
+#On génère le nouveau fichier d'inventaire d'après la branche computer ldap
+echo "le script génère le nouveau fichier d'inventaire des machines"
+bash "$CHEMIN"/inventaire/import_inventaire
 
 #On a placé dans le répertoire clonezilla-auto un export des entrées du dhcp
 #on demande à l'utilisateur de rentrer les trois premiers octets du parc à restaurer, l'adresse ip complète du poste, ou  le début du nom des postes 
