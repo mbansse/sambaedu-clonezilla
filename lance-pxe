@@ -147,7 +147,7 @@ sed -i '1d' "$TEMP"/liste1
 sed -i '1d' "$TEMP"/postes
 
 #On actualise la variable.
-mac=$(sed -n "1p" "$TEMP"/listeok)
+mac=$(sed -n "1p" "$TEMP"/listeok | sed 's/.*/\L&/')
 
 #On pactualise la variable.
 mac2=$(sed -n "1p" "$TEMP"/liste1)
