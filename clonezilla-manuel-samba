@@ -35,23 +35,36 @@ echo "Entrer le mot de passe de l'utilisateur (attention, apparait en clair sur 
 read MDP
 
 
-echo "recopier parmi la liste suivante le type d'image à restaurer. "
-
-
-
 #la liste des images placées dans le répertoire samba est mis dans un fichier image, placé dans liste-image
 mount -t cifs //$IPSAMBA/$PARTAGE "$CHEMIN"/liste-image/ -o user=$USER,password=$MDP
-# cat /tftpboot/pxelinux.cfg/clonezilla-auto/liste-image/liste
+#vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
+VERIFMONTAGE=$(mount |grep liste-image)
+if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
+bash "$CHEMIN"/efface-temp
+exit
+else
+clear 
+echo "le montage du partage samba est effectué,recopier parmi la liste suivante le NOM EXACT de l'image à restaurer."
+fi
+
+
+
+# on affiche la liste des images disponibles sur le partage.
 ls   "$CHEMIN"/liste-image/
+#la liste des  images est écrite dans un fichier liste 
 ls   "$CHEMIN"/liste-image/ > "$TEMP"/liste
 read choix
+#On démonte le partage samba du se3
 umount  "$CHEMIN"/liste-image/
-#On vérifie que ce qui a té tapé correspond bien à une image existante
+
+#On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat  /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste |grep "$choix")
 
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+bash "$CHEMIN"/efface-temp
 exit
 else
+clear
 echo "l'image appelée "$choix" sera restaurée sur les postes"
 fi
 
@@ -90,7 +103,6 @@ prompt 1
 EOF
 
 
-
 #On génère le nouveau fichier d'inventaire d'après la branche computer ldap
 echo "le script génère le nouveau fichier d'inventaire des machines"
 bash "$CHEMIN"/inventaire/import_inventaire
@@ -102,7 +114,7 @@ read debutip
 
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
 cat  /tftpboot/pxelinux.cfg/clonezilla-auto/inventaire/inventaire* |grep "$debutip" > /tftpboot/pxelinux.cfg/clonezilla-auto/temp/exportauto
-#On a créé un fichier "exportauto" à partir di fichier d'inventaire dhcp qui contient trois colonne ip;nom-netbios;mac   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0) 
+#On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient trois colonne ip;nom-netbios;mac   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0) 
 
 #on ne garde que la deuxième colonne pour avoir la liste des postes sensés être clonés qu'il faudra vérifier.
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
@@ -172,7 +184,8 @@ cp "$TEMP"/listeok "$CHEMIN"/log/"$DATE"
 
 
 #On place la première adresse mac de la listemac  dans une variable pour créer ensuite le fichier de commande pxe personnalisé du poste.
-mac=$(sed -n "1p" "$TEMP"/listeok)
+#toutes les majuscules de l'adresse mac doivent être transformées en minuscules, ou le pxe du poste ne sera pas pris en compte par la machine
+mac=$(sed -n "1p" "$TEMP"/listeok | sed 's/.*/\L&/')
 #On met en variable le nom du premier poste de la liste pour le lancer avec le script se3 lance_poste
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
 #On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste

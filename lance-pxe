@@ -116,7 +116,7 @@ sed 's/\:/\-/g' "$TEMP"/liste1 > "$TEMP"/listeok
 cp "$TEMP"/exportauto "$CHEMIN"/log/"$DATE"/
 
 #On place la première adresse mac de la listemac  dans une variable pour créer ensuite le fichier de commande pxe personnalisé du poste.
-mac=$(sed -n "1p" "$TEMP"/listeok)
+mac=$(sed -n "1p" "$TEMP"/listeok| sed 's/.*/\L&/' )
 cp "$TEMP"/listeok "$CHEMIN"/log/"$DATE"/
 #On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
 mac2=$(sed -n "1p" "$TEMP"/liste1)
