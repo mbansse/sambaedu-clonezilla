@@ -1,0 +1,37 @@
+# Script de boot pour sauvegarder la partition sda1 vers sda2 (image fabriquée)
+
+
+
+# Echappatoires pour booter sur le DD:
+label 0
+   localboot 0x80
+label a
+   localboot 0x00
+label q
+   localboot -1
+label disk1
+   localboot 0x80
+label disk2
+  localboot 0x81
+
+# Label de rapport
+#label sysrcdrap
+#    kernel rescue64
+    #initrd initram.igz
+#append initrd=initram.igz scandelay=5 setkmap=fr netboot=http://172.20.0.2/sysresccd/sysrcd.dat autoruns=2,3 ar_source=http://172.20.0.2/sysresccd/ ar_nowait dodhcp auto_reboot=y delais_reboot=90 work=rapport.sh hostname=debian-1  
+
+label clonezilla
+#MENU LABEL Clonezilla sauvegarde locale sda1 vers sda2 
+KERNEL clonezilla64/vmlinuz
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t auto /dev/sda2 /home/partimag/ "  ocs_live_run="ocs-sr -q2  -j2 -z1 -i 2000 -fsck-src-part -p reboot saveparts savesda1 sda1" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://172.20.0.2/clonezilla64/filesystem.squashfs
+
+# Choix de boot par défaut:
+default clonezilla
+
+# On boote après 6 secondes:
+timeout 60
+
+# Permet-on à l'utilisateur de choisir l'option de boot?
+# Si on ne permet pas, le timeout n'est pas pris en compte.
+prompt 1
+
