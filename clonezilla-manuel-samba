@@ -35,7 +35,7 @@ echo "Entrer le mot de passe de l'utilisateur (attention, apparait en clair sur 
 read MDP
 
 
-#la liste des images placées dans le répertoire samba est mis dans un fichier image, placé dans liste-image
+#le partage samba contenant les images est monté dans le répertoire liste_image juste pour établir le fichier  contenant la liste des images disponibles.
 mount -t cifs //$IPSAMBA/$PARTAGE "$CHEMIN"/liste-image/ -o user=$USER,password=$MDP
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
