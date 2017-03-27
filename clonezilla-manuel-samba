@@ -190,6 +190,7 @@ mac=$(sed -n "1p" "$TEMP"/listeok | sed 's/.*/\L&/')
 NOM_CLIENT=$(sed -n "1p" "$TEMP"/postes)
 #On place la même adresse mac avec : dans une variable mac2 pour le wakeonlan du poste
 mac2=$(sed -n "1p" "$TEMP"/liste1)
+#voir si l'option /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" wol marche....eviterait donc la variable mac2
 
 
 #on  créer notre boucle ici: On va supprimer la première ligne de la liste des adresses mac. Dès que le fichier contenant les adresses mac est vide, il y a arret de la boucle
@@ -203,10 +204,12 @@ chmod 644 /tftpboot/pxelinux.cfg/01-*
  
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
 #le format du wakeonlan doit être wakeonlan 08:1a:
-wakeonlan "$mac2"
+#wakeonlan "$mac2"
 #si le poste est déjà allumé sous windows, on lui envoie un signal de reboot
 #echo "$NOM_CLIENT" > "$CHEMIN"/log/"$DATE"/"$NOM_CLIENT"  #inutile puisqu'un fichier avec mac et nom_client est écrit plus haut.
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" reboot
+/usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" wol
+
 
 
 #la première ligne du fichier listeok/liste1/postes est à supprimer pour que l'opération continue avec les adresses mac suivantes
