@@ -1,4 +1,4 @@
-# Script de boot pour machines M72e avec l'image de sciences 
+# Script de boot pour machines M72e avec l'image de tertiaire 
 
 
 
@@ -21,9 +21,9 @@ label disk2
 #append initrd=initram.igz scandelay=5 setkmap=fr netboot=http://172.20.0.2/sysresccd/sysrcd.dat autoruns=2,3 ar_source=http://172.20.0.2/sysresccd/ ar_nowait dodhcp auto_reboot=y delais_reboot=90 work=rapport.sh hostname=debian-1  
 
 label clonezilla
-#MENU LABEL Clonezilla restore m72-sciences (partimag)
-KERNEL clonezilla64v2/vmlinuz
-APPEND initrd=clonezilla64v2/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //172.20.0.6/partimag /home/partimag/ -o user=clonezilla,password=md5crypted"  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2 -scr -p reboot restoredisk  m72esciencesv6 sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://172.20.0.2/clonezilla64v2/filesystem.squashfs
+#MENU LABEL Clonezilla restore m72etertiairev6 (partimag)
+KERNEL clonezilla64/vmlinuz
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //172.20.0.6/partimag /home/partimag/ -o user=clonezilla,password=mdp123"  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2 -scr -p reboot restoredisk  m72etertiairev6 sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://172.20.0.2/clonezilla64/filesystem.squashfs
 
 # Choix de boot par défaut:
 default clonezilla
