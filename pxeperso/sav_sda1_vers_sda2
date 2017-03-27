@@ -14,11 +14,6 @@ label disk1
 label disk2
   localboot 0x81
 
-# Label de rapport
-#label sysrcdrap
-#    kernel rescue64
-    #initrd initram.igz
-#append initrd=initram.igz scandelay=5 setkmap=fr netboot=http://172.20.0.2/sysresccd/sysrcd.dat autoruns=2,3 ar_source=http://172.20.0.2/sysresccd/ ar_nowait dodhcp auto_reboot=y delais_reboot=90 work=rapport.sh hostname=debian-1  
 
 label clonezilla
 #MENU LABEL Clonezilla sauvegarde locale sda1 vers sda2 
