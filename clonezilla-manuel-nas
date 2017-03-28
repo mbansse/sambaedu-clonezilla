@@ -23,7 +23,6 @@ rm -Rf "$TEMP"/*
 #on efface l'inventaire qui n'est peut-être pas à jour
 rm -f "$CHEMIN"/inventaire/inventaire*
 
-
 #L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp
 #echo "Entrer l'ip du partage samba (ex  172.20.0.6)"
 #read IPSAMBA
@@ -34,7 +33,8 @@ rm -f "$CHEMIN"/inventaire/inventaire*
 #echo "Entrer le mot de passe de l'utilisateur (attention, apparait en clair sur cet écran)"
 #read MDP
 
-
+echo "montage du nas dans le répertoire liste-image"
+echo "Si le script semble s'arreter, c'est que le montage a échoué,  faire CTRL + C pour revenir au terminal"
 #le partage samba contenant les images est monté dans le répertoire liste_image juste pour établir le fichier  contenant la liste des images disponibles.
 mount -t nfs 172.16.255.62:/volume1/cz_img/ "$CHEMIN"/liste-image/ 
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
