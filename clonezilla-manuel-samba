@@ -4,7 +4,10 @@
 TEMP="/tftpboot/pxelinux.cfg/clonezilla-auto/temp"
 CHEMIN="/tftpboot/pxelinux.cfg/clonezilla-auto"
 LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
-IPSE3="172.20.0.2"
+#IPSE3="172.20.0.2"
+#récupération des variables se3
+. /etc/se3/config_m.cache.sh
+
 DATE=`date +%Y-%m-%d-%H-%M`
 
 
@@ -89,7 +92,7 @@ label disk2
 label clonezilla
 #MENU LABEL Clonezilla restore "$choix" (partimag)
 KERNEL clonezilla64/vmlinuz
-APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$IPSAMBA/$PARTAGE /home/partimag/ -o user=$USER,password=$MDP "  ocs_live_run="ocs-sr  -e1 auto -e2  -r  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$IPSE3/clonezilla64/filesystem.squashfs
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$IPSAMBA/$PARTAGE /home/partimag/ -o user=$USER,password=$MDP "  ocs_live_run="ocs-sr  -e1 auto -e2  -r  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/clonezilla64/filesystem.squashfs
 
 # Choix de boot par défaut:
 default clonezilla
