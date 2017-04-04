@@ -12,7 +12,10 @@ Pour fonctionner correctement il faut:
 
 Le répertoire 'clonezilla-auto' doit être placé dans le répertoire /tftpboot/pxelinux.cfg/ du se3. Si on le met ailleurs, il faudra modifier les variables d'environnement dans les scripts, ainsi que certains emplacements écrits sans variable.
 
-Ce répertoire possède deux scripts à rendre executables.
+Ce répertoire possède trois scripts à rendre executables.
+
+→ **mise_en_plce_partimag_et_clonezilla.sh** va mettre en place dans /var/se3/ un partage samba "partimag", avec des droits de lecture/écriture pour admin et de lecture pour adminse3.  
+Si clonezilla n'est pas déjà installé, le script d'installation va être lancé. Les fichiers de clonezilla seront ensuite modifiés en y incorporant un fichier credentials pour que le montage du partage puisse se faire de façon automatique et sans login/mdp afficés à l'écran.Cette opération sera assez longue (compter un vingtaine de minutes).
 
 → **clonezilla-manuel-samba** permet de restaurer une image clonezilla placée sur un partage samba. 
 En lançant ce script, il vous est demandé de renseigner l'ip,nom du partage, login et mdp d'un compte autorisé à lire l'image.
@@ -23,4 +26,3 @@ Ces fichiers pxe devront contenir le nom de l'image à restaurer, l'ip,login et 
 Ici il s'agit d'une restauration d'image, mais on peut créer un fichier de consignes PXE servant à faire autre chose. 
 
 Si les postes ont déjà été intégrés et qu'ils possèdent déjà le compte adminse3 et administrateur avec les mots de passe (du compte adminse3), alors l'integration automatique via l'interface (réservation ip > réintégrer le poste) est possible.
-
