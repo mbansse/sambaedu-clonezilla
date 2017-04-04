@@ -6,7 +6,7 @@ Il va permettre de restaurer automatiquement une image clonezilla préalablement
 
 Pour fonctionner correctement il faut:
 * Que Clonezilla soit installé par l'interface de gestion du se3 (serveur tftp activé)
-* Que les images clonezilla de postes à déployer soient sur un partage samba accessible en lecture (Travail en cours avec un 'NAS').
+* Que les images clonezilla de postes à déployer soient sur un partage samba accessible en lecture (Travail en cours avec un 'NAS').A défaut, on pourra lancer l'un des scripts qui crééra sur le se3 ce partage (vérifier la place disponible!!!)
 * Que les ordinateurs bootent en priorité par le pxe, avec fonction Wakeonlan activée.
 * Que chaque poste client ait une adresse ip réservée dans l'interface dhcp du se3.
 
