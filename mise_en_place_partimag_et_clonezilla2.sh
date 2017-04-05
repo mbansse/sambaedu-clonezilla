@@ -9,8 +9,8 @@ DATE=`date +%Y-%m-%d-%H-%M`
 
 echo " le se3 a pour ip: $se3ip"
 echo " ce script  permet de créer un partage partimag sur le se3"
-echo " Ce partage sera accéssible pour adminse3 et admin"
-echo " Ensuite, le dispositif clonezilla sera mis en place, puis modifié de façon à ce qu'adminse3 puisse s'y connecter automatiquement"
+echo " Ce partage sera accéssible en lecture/ecriture pour admin et seulement en lecture pour adminse3"
+echo " Ensuite, le dispositif clonezilla sera mis en place, puis modifié de façon à ce qu'adminse3 puisse s'y connecter automatiquement sur les postes clients"
 PLACE=$(df -h /var/se3)
 echo " La partition /var/se3 est dans l'état: "$PLACE" "
 echo -e " Voulez vous installer un partage samba situé dans /var/se3/partimag ? répondre  \033[1moui pour valider ou n'importe quoi d'autre pour sauter cette étape "

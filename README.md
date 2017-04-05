@@ -14,8 +14,8 @@ Le répertoire 'clonezilla-auto' doit être placé dans le répertoire /tftpboot
 
 Ce répertoire possède trois scripts à rendre executables.
 
-→ **mise_en_plce_partimag_et_clonezilla.sh** va mettre en place dans /var/se3/ un partage samba "partimag", avec des droits de lecture/écriture pour admin et de lecture pour adminse3.  
-Si clonezilla n'est pas déjà installé, le script d'installation va être lancé. Les fichiers de clonezilla seront ensuite modifiés en y incorporant un fichier credentials pour que le montage du partage puisse se faire de façon automatique et sans login/mdp affichés à l'écran.Cette opération sera assez longue (compter un vingtaine de minutes).
+→ **mise_en_place_partimag_et_clonezilla.sh** va mettre en place dans /var/se3/ un partage samba "partimag", avec des droits de lecture/écriture pour admin et de lecture pour adminse3.  
+Si clonezilla n'est pas déjà installé, le script d'installation va être lancé. Les fichiers de clonezilla seront ensuite modifiés en y incorporant un fichier credentials pour que le montage du partage puisse se faire de façon automatique et sans login/mdp affichés à l'écran sur les postes clients.Cette opération sera assez longue (compter un vingtaine de minutes).
 
 → **clonezilla-manuel-samba** permet de restaurer une image clonezilla placée sur un partage samba. 
 En lançant ce script, il vous est demandé de renseigner l'ip,nom du partage, login et mdp d'un compte autorisé à lire l'image.
