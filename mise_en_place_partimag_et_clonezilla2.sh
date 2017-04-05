@@ -8,12 +8,13 @@ DATE=`date +%Y-%m-%d-%H-%M`
 . /etc/se3/config_m.cache.sh
 
 echo " le se3 a pour ip: $se3ip"
-echo " ce script  permet de créer un partage partimag sur le se3"
+echo -e " ce script  permet de créer un partage \033[7mpartimag\033[0m sur le se3"
 echo " Ce partage sera accéssible en lecture/ecriture pour admin et seulement en lecture pour adminse3"
 echo " Ensuite, le dispositif clonezilla sera mis en place, puis modifié de façon à ce qu'adminse3 puisse s'y connecter automatiquement sur les postes clients"
 PLACE=$(df -h /var/se3)
-echo " La partition /var/se3 est dans l'état: "$PLACE" "
-echo -e " Voulez vous installer un partage samba situé dans /var/se3/partimag ? répondre  \033[1moui pour valider ou n'importe quoi d'autre pour sauter cette étape "
+echo " La partition /var/se3 est dans l'état:"
+echo "$PLACE" 
+echo -e " Voulez vous installer un partage samba situé dans /var/se3/partimag ? répondre  \033[34moui \033[0m pour valider ou \033[7m n'importe quoi d'autre pour sauter cette étape\033[0m (CTRL+C pour quitter le script) "
 read reponse1
 if [ "$reponse1" = "oui"  ]; then  echo "Création du partage samba "
 mkdir -p /var/se3/partimag/
@@ -21,13 +22,13 @@ mkdir -p /var/se3/partimag/
 cat <<EOF>> /etc/samba/smb_etab.conf
 
 #<partimag>
-#Installé à partir du script contenau dans clonezilla-auto
+#Installé à partir du script contenu dans clonezilla-auto
 #Date : $DATE
 [partimag]
         comment = partage samba servant à stocker les images clonezilla générées
         path    = /var/se3/partimag
         read only       = No
-        browseable = yes
+        browseable = no
         valid users     = @admins adminse3
 #</partimag>
 EOF
@@ -37,6 +38,7 @@ chmod -R 775 /var/se3/partimag/
 
 #On relance le service samba
 /etc/init.d/samba restart
+clear
 echo "Le partage samba  'partimag' est maintenant fonctionnel et accessible par admin et adminse3"
 else
 clear
@@ -122,14 +124,14 @@ cat <<EOF>> /tftpboot/pxelinux.cfg/perso.menu
 label clonezilla64
 MENU LABEL Clonezilla live 64 (se3)
 KERNEL clonezilla64/vmlinuz
-APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$ipse3/partimag /home/partimag/ -o credentials=/root/credentials"   ocs_live_run="ocs-live-general" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$ipse3/clonezilla64/filesystem.squashfs
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$se3ip/partimag /home/partimag/ -o credentials=/root/credentials"   ocs_live_run="ocs-live-general" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/clonezilla64/filesystem.squashfs
 EOF
 
 cat <<EOF>> /tftpboot/pxelinux.cfg/perso.menu
 label Clonezilla-live
-MENU LABEL restauration d'une image (sur se3)
+MENU LABEL restauration d'une image stockée sur le se3
 KERNEL clonezilla64/vmlinuz
-APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$ipse3/partimag /home/partimag/ -o credentials=/root/credentials"  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  ask_user sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$ipse3/clonezilla64/filesystem.squashfs
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$se3ip/partimag /home/partimag/ -o credentials=/root/credentials"  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  ask_user sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/clonezilla64/filesystem.squashfs
 EOF
 
 exit
