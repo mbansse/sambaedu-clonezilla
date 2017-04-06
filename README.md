@@ -17,8 +17,11 @@ Si clonezilla n'est pas déjà installé, le script d'installation va être lanc
 
 → **clonezilla-manuel-samba** permet de restaurer une image clonezilla placée sur un partage samba. 
 En lançant ce script, plusieurs choses vous sont demandées:
+
 Pour accéder aux images, il vous est demandé de renseigner l'ip,nom du partage, login et mdp d'un compte autorisé à lire l'image.
+
 On indique ensuite quels postes doivent recevoir cette image (nom, ip du poste, début des ip pour en séléctionner plusieurs, ou nom du parc tout simplement).
+
 Un fichier de commande de boot par pxe (placé dans /ttpboot/pxelinux.cfg/ et nommé par l'adresse mac) est créé pour chaque poste. Les postes clients vont démarrer ou redémarrer puis vont recevoir les consignes pxe. Clonezilla est alors lancé avec les consignes de montage, clonage d'image puis redémarrage.
 
 → **lance-pxe** permet lui de lancer directement des consignes pxe à l'aide d'un fichier type 'pxe' placé dans le répertoire 'pxeperso'. Un modèle est présent dans le répertoire.
