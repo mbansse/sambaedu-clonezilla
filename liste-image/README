@@ -1,7 +1,0 @@
-<<<<<<< HEAD
-Le partage samba contenant les images clonezilla sera monté ici.
-Une fois monté, le script affichera la liste des images disponibles.
-=======
-Il faut placer dans ce répertoire un fichier "liste" contenant le nom des images clonezilla présentes sur le partage samba
-Un simple 'ls -l repertoire_contenant_les_images > liste' suffit à obtenir ce fichier
->>>>>>> ec6e77c0a5416928d3a0d24f7ccf738c3f870223
