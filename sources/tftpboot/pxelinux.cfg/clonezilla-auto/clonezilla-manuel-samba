@@ -7,7 +7,7 @@ LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
 #IPSE3="172.20.0.2"
 #récupération des variables se3
 . /etc/se3/config_m.cache.sh
-
+BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
 DATE=`date +%Y-%m-%d-%H-%M`
 
 
@@ -113,6 +113,10 @@ bash "$CHEMIN"/inventaire/import_inventaire
 #on a placé dans le répertoire clonezilla-auto/inventaire un export des entrées du dhcp fait avec l'interface se3
 #on demande à l'utilisateur de rentrer les trois premiers octets du parc à restaurer 
 echo ""
+LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$BASE|grep dn:|sed 's/.*cn=//'|sed 's/,ou.*//' |sed '1d' |sed 1n |sed 's/$/ /'| tr '\n' ' ' |sed 's/>%/>\n/g')
+echo -e "\033[4mPour rappel, voici la liste des parcs\033[0m"
+echo "$LISTE_PARCS"
+echo""
 echo -e "\033[34mEntrer le nom du parc (ex sciences) ou les premiers octets de l'ip du parc à cloner (ex 172.20.50.)\033[Om"
 echo "s'il faut restaurer seulement un poste, on entrera l'adresse ip (ex 172.20.50.101) ou le nom  du poste (ex s218-2)" 
 read debutip
