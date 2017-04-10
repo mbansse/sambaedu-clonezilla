@@ -27,19 +27,13 @@ do
 		# PB: on récupère les cn des entrées machines aussi (xpbof et xpbof$)
 		ip=$(ldapsearch -xLLL -b ou=computers,$BASE cn=$nom ipHostNumber | grep ipHostNumber | cut -d" " -f2)
 		mac=$(ldapsearch -xLLL -b ou=computers,$BASE cn=$nom macAddress | grep macAddress | cut -d" " -f2)
-		parcs=$( ldapsearch -xLLL  -b ou=Parcs,$BASE | sed -e '/./{H;$!d;}' -e 'x;/'$nom'/!d;'|grep dn: |sed 's/.*cn=//' |sed 's/,ou.*//' |sed '$!N;s/\n/ /;$!N;s/\n/ /;' |sed '$!N;s/\n/ /;$!N;s/\n/ /;'|sed '$!N;s/\n/ /;$!N;s/\n/ /;' )
+		parcs=$( ldapsearch -xLLL  -b ou=Parcs,$BASE | sed -e '/./{H;$!d;}' -e 'x;/'$nom'/!d;'|grep dn: |sed 's/.*cn=//' |sed 's/,ou.*//'|sed 1n | tr '\n' ' ' |sed 's/>%/>\n/g')
 		if [ ! -z "$ip" -a ! -z "$mac" ]; then
 			echo "$ip;$nom;$mac;$parcs" >> $fich_nom_ip_mac_parcs
 			
 		fi
 	fi
 done
-
-# Conversion en fichier DOS.
-#sort ${fich_nom_ip_mac} > ${fich_nom_ip_mac}.tmp
-#cat ${fich_nom_ip_mac}.tmp | perl -pe 's/\n/\r\n/' > $fich_nom_ip_mac
-#rm -f ${fich_nom_ip_mac}.tmp
-
 
 echo "Les fichiers ont été générés dans $dest"
 echo "Terminé."

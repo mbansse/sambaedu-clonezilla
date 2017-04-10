@@ -17,7 +17,9 @@ mkdir -p "$CHEMIN"/log/"$DATE"
 # On affiche une liste de type d images ( dans un répertoire): on demande quel type d'image sera à restaurer: il faudra donc creer un fichier commande-pxe-parc (appelé M72-tertaire par ex) pour chaque type d image.
 clear 
 echo "Ce script permet de restaurer une image clonezilla existante  sur un/plusieurs postes du réseau"
+echo ""
 echo "Les images existantes doivent être stockées sur un partage samba "
+echo ""
 echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en pxe "
 
 #On efface le contenu du répertoire temp au cas où un précédent clonage aurait été arrêté manuellement 
@@ -26,7 +28,10 @@ rm -Rf "$TEMP"/*
 mkdir -p "$TEMP"
 
 #L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp
-echo -e "Choisir \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m ."
+echo ""
+echo ""
+echo " Vous devez choisir si vous voulez utiliser la version 32 bits (clonezilla), ou la version 64 bits (clonezilla64) "
+echo -e "Taper \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m puis appuyer sur entrée ."
 read CLONEZILLA
 echo -e "\033[34mEntrer l'ip du partage samba\033[0m (ex  172.20.0.6)"
 read IPSAMBA
@@ -118,8 +123,8 @@ LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$BASE|grep dn:|sed 's/.*cn=//'|sed '
 echo -e "\033[4mPour rappel, voici la liste des parcs\033[0m"
 echo "$LISTE_PARCS"
 echo""
-echo -e "\033[34mEntrer le nom du parc (ex sciences) ou les premiers octets de l'ip du parc à cloner (ex 172.20.50.)\033[Om"
-echo "s'il faut restaurer seulement un poste, on entrera l'adresse ip (ex 172.20.50.101) ou le nom  du poste (ex s218-2)" 
+echo -e "Entrer \033[1mle nom du parc\033[0m (ex sciences) ou \033[1mles premiers octets\033[0m de l'ip du parc à cloner (ex 172.20.50.)\033[0m"
+echo -e "S'il faut restaurer seulement \033[1mun poste\033[0m, on entrera l'adresse ip (ex 172.20.50.101) ou le nom  du poste (ex s218-2)" 
 read debutip
 
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
@@ -134,7 +139,7 @@ cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
 echo " vous avez choisi les postes dont l'ip est/commence par \033[34mA"$debutip"\033[0m. "
 
 echo -e " \033[31mATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur\033[0m."
-echo "Veillez à ce que la salle soit vide"
+echo -e "\033[1mVeillez à ce que la salle soit vide\033[Om"
 POSTES=$(cat "$TEMP"/verifpostes)
 
 
@@ -145,7 +150,7 @@ exit
 else echo "les postes suivants seront effacés puis restaurés. "
 echo -e "\033[34m"$POSTES"\033[0m"
 echo -e "taper \033[31moui\033[0m pour continuer ou \033[34mnano\033[0m pour éditer la liste des postes à restaurer"
-echo -e "Pour éditer la liste, il suffit de \033[31msupprimer les lignes inutiles \033[0m. On enregistre \033[31m(CTRL+O)\033[O , suivi de quitter \033[31m(CTRL+X)\033[0m ." 
+echo -e "Pour éditer la liste, il suffit de \033[31msupprimer les lignes entières inutiles \033[0m. On enregistre \033[31m(CTRL+O)\033[0m , suivi de quitter \033[31m(CTRL+X)\033[0m ." 
 read REPONSE
 fi
 
@@ -161,8 +166,8 @@ clear
 if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
 exit
 else echo " Etes-vous sur de vouloir restaurer ces postes?"
-echo -e "\033[31m "$POSTES2"\033[Om"
-echo -e " \033[7mATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide\033[0m"
+echo -e "\033[31m "$POSTES2"\033[0m"
+echo -e " \033[4mATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide\033[0m"
 echo -e "taper \033[31moui\033[0m pour continuer ou autre chose pour quitter"
 read REPONSE2
 fi
