@@ -1,18 +1,41 @@
 #!/bin/bash
 CHEMIN=(/tftpboot/pxelinux.cfg/clonezilla-auto)
 clear
+echo "...............................?~~~~=..............~+=.................................................................."
+echo "..............................?~~~.?~.............=+++~.................~~=++++:...........................,~~~,........"
+echo "..............................~~~...~?...........~++++~...............+++++++++~.......................~~III~=III7~....."
+echo ".............................=~~....=~...........++++~~................++++++~~......................~???~.....~7777~..."
+echo ".............................~~~....=~..........~+~~~~.................:+++++~......................~???III=:...?7777~.."
+echo ".?=~+?..++~~~=?.?+=~=??+~~=.+~~?~~?.~~I=~~~=?....~......................=+++++...............+~,....~???IIIII~.~77777~.."
+echo "?~~=..=~~+.~~~:+~~?=~~~.~~~.~~~.:~~?+~~?.~~~....~:+++++~~...............~+++++~..............++++++~~???IIIII,.~77777~.."
+echo ":+~~~??:~~=~~=.~~~.:~:.+~~??~~~~~~+~+~~~?:~?.~++++++++++++:.....:++++:...+++++~..+++++++++~.,++++~~~.:~=?=~~..~777777~.."
+echo ".......................~~:.........=~?......~+++:~~~:,~:+++~...~++++++++.+++++~.~~~~~~+++:~.~+++:,..........~II7777~~..."
+echo "......................~~~=.........~~......~++++~......:++++:.~+++++++++++++++~.....:++++~..~+++~........~IIIII~~~......"
+echo "....................?I~~~?........=~~......+++++++++++++++++~,++++++++++++++++~....:++++~:..?+++~........:~~~~IIIIII=~.."
+echo ".....................:~~=?~.......~~~......++++++~~+++++++++~:+++++:~~~~~+++++~...~+++++~..,++++~.............~IIIIIII~."
+echo ".....................,:?~~~=.....?~~.......++++++~...~~~~~++~+++~~~......~+++=~...+++++~,..~++++~......:~~.....~??????+."
+echo "......................,~~~~??....~::.......:+++++~..:?+~~..:~+++~.......:++++~...~+++++~...+++++~...~=+++???~..~???????~"
+echo ".......................,~~+.....=~?........:+++++~.+++++++~..++++~:..:~++++++~...++++++~..~+++++~..~++++++++?~..???????,"
+echo ".......................?~~:....+~~..........~++++~.++++++++~.+++++++++++++++~++:.++++++~..+++++++++~+++++++++...?+++++~."
+echo ".......................~~~.....~~............++++:.~+++++++~.++++++++++++++++++~,+++++++:++=+++++++~+++++++~:...++++++:."
+echo ".......................~~~....~~..............++++~..:++++~~..+++++++++~~+++++?~.++++++++~~+++++~~~~~+++=~.....~+++++:.."
+echo ".......................+~:...~?................~=++++++++~~....~~~~~~~~,~:~~~~.~.,++++++~~.++~~~......:++~::=++++++~...."
+echo "........................~~+?+....................~~~~~~~~................~.........~~~~~..::~,..........,~~~~~~~,......."
+echo "...........................................................................................:............................"
+echo ""
 echo " Ce script va permettre de:"
 echo ""
-echo "(1)Mettre en place un partage samba  appelé 'partimag' sur /var/se3, télécharger clonezilla sur le serveur et le rendre accéssible automatiquement ^par adminse3."
+echo -e "\033[31m(1)\033[0m\033[4mMettre en place un partage samba  appelé \033[1mpartimag\033[0m sur /var/se3, télécharger clonezilla sur le serveur et le rendre accessible automatiquement par adminse3."
 echo ""
-echo "(2)Restaurer automatiquement une image clonezilla placée dans le partage samba 'partimag du se3' sur un parc de machine (ou machine seule)."
+echo -e "\033[31m(2)\033[0mRestaurer automatiquement une image clonezilla placée dans le partage samba \033[1mpartimag du se3\033[0m sur un parc de machine (ou machine seule)."
 echo ""
-echo "(3)Restaurer automatiquement une image clonezilla placée dans un partage samba (autre que sur SE3) sur un parc de machine (ou machine seule)."
+echo -e "\033[31m(3)\033[0mRestaurer automatiquement une image clonezilla placée dans un partage samba (autre que sur SE3) sur un parc de machine (ou machine seule)."
 echo ""
-echo "(4)Lancer des commandes  pxe personnalisées sur une mchine ou un ensemble de machines"
+echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une mchine ou un ensemble de machines"
 echo ""
-echo "Entrer le numero correspondant à votre choix ou n'importe quoi pour quitter, puis la touche entrée"
+echo -e "Entrer le \033[31mnumero\033[0m correspondant à votre choix ou \033[4mn'importe quoi\033[0m pour quitter, puis la touche entrée."
 read  choixlanceur
+
 if [ "$choixlanceur" = "1" ] 
 then
         bash  "$CHEMIN"/scripts/mise_en_place_partimag_et_clonezilla2.sh
