@@ -23,7 +23,7 @@ echo ".......................+~:...~?................~=++++++++~~....~~~~~~~~,~:
 echo "........................~~+?+....................~~~~~~~~................~.........~~~~~..::~,..........,~~~~~~~,......."
 echo "...........................................................................................:............................"
 echo ""
-echo " Ce script va permettre de:"
+echo " Clonezilla-auto permet de:"
 echo ""
 echo -e "\033[31m(1)\033[0m\033[4mMettre en place un partage samba  appelé \033[1mpartimag\033[0m sur /var/se3, télécharger clonezilla sur le serveur et le rendre accessible automatiquement par adminse3."
 echo ""
@@ -31,7 +31,7 @@ echo -e "\033[31m(2)\033[0mRestaurer automatiquement une image clonezilla placé
 echo ""
 echo -e "\033[31m(3)\033[0mRestaurer automatiquement une image clonezilla placée dans un partage samba (autre que sur SE3) sur un parc de machine (ou machine seule)."
 echo ""
-echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une mchine ou un ensemble de machines"
+echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une machine ou un parc de machines"
 echo ""
 echo -e "Entrer le \033[31mnumero\033[0m correspondant à votre choix ou \033[4mn'importe quoi\033[0m pour quitter, puis la touche entrée."
 read  choixlanceur

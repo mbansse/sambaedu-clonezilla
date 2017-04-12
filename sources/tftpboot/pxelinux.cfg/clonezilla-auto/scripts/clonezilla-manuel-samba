@@ -48,7 +48,7 @@ mount -t cifs //$IPSAMBA/$PARTAGE "$CHEMIN"/liste-image/ -o user=$USER,password=
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
-bash "$CHEMIN"/efface-temp
+bash "$CHEMIN"/scripts/efface-temp
 exit
 else
 clear 
@@ -69,7 +69,7 @@ umount  "$CHEMIN"/liste-image/
 VERIF=$(cat  /tftpboot/pxelinux.cfg/clonezilla-auto/temp/liste |grep "$choix")
 
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
-bash "$CHEMIN"/efface-temp
+bash "$CHEMIN"/scripts/efface-temp
 exit
 else
 clear

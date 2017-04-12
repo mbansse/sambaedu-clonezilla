@@ -38,7 +38,7 @@ read choix
 VERIF=$(ls /home/partimag/ |grep "$choix")
 
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
-bash "$CHEMIN"/efface-temp
+bash "$CHEMIN"/scripts/efface-temp
 exit
 else
 clear
