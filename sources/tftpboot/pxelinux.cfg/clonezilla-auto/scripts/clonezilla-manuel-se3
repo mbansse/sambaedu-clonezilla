@@ -62,7 +62,11 @@ read choix
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+<<<<<<< HEAD
 #rm -Rf "$TEMP"
+=======
+bash "$CHEMIN"/scripts/efface-temp
+>>>>>>> 8a7c38d8ff6adf1942c98e75cdec2e688a7d2eb0
 exit
 else
 clear

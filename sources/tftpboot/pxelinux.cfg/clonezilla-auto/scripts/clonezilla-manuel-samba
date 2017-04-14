@@ -61,7 +61,11 @@ mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
+<<<<<<< HEAD
 rm -Rf "$TEMP"
+=======
+bash "$CHEMIN"/scripts/efface-temp
+>>>>>>> 8a7c38d8ff6adf1942c98e75cdec2e688a7d2eb0
 exit
 else
 clear
@@ -81,7 +85,11 @@ umount  "$LISTE_IMAGE"
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+<<<<<<< HEAD
 rm -Rf "$TEMP"
+=======
+bash "$CHEMIN"/scripts/efface-temp
+>>>>>>> 8a7c38d8ff6adf1942c98e75cdec2e688a7d2eb0
 exit
 else
 clear
