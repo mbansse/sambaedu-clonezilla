@@ -15,8 +15,9 @@ Cet ensemble de scripts est fait pour être utilisé avec les serveurs se3 (samb
 * Que les ordinateurs bootent en priorité par le pxe, avec fonction Wakeonlan activée.
 * Que chaque poste client ait une adresse ip réservée dans l'interface dhcp du se3.
 
-*Le répertoire *clonezilla-auto* doit être placé dans le répertoire /tftpboot/pxelinux.cfg/ du se3. Si on le met ailleurs, il faudra modifier les variables d'environnement dans les scripts, ainsi que certains emplacements écrits sans variable.*
-*CLonezilla-auto doit être lancé en root sur le se3*
+*Le répertoire *clonezilla-auto* peut être placé n'importe où sur le serveur.Il faudra juste éditer le script pour indiquer l'emplacement des fichiers contenant des commandes PXE personnalisées.*
+*Clonezilla-auto doit être lancé en root sur le se3*.
+*A chaque clonage, un répertoire situé dans /var/log/clonezilla-auto/date contient les différents fichiers temporaires effacés.*
 
 ## Intégration automatique
 Si les postes ont déjà été intégrés (et sont donc considérés commes tels par le serveur) et qu'ils possèdent déjà le compte adminse3 et administrateur avec les mots de passe (utilisateurs à ajouter avant de créer l'image), alors l'integration automatique via l'interface (réservation ip > réintégrer le poste) est possible.
