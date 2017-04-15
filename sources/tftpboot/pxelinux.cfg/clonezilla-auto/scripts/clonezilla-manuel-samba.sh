@@ -228,8 +228,10 @@ fi
 if [ "$REPONSE2" = oui ]; then  echo "On lance le clonage" 
 else
  echo "Clonage annulé"
- #on efface les fichiers temporaires créés
-rm -f "$TEMP"/*
+ #on efface les fichiers temporaires créés 
+ # protection de la variable poru le rm merci flaf ;)
+ TEMP=$(cd "$TEMP"; pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
+
  exit  
 fi
 }
@@ -311,7 +313,11 @@ fi
 
 #on efface tous les fichiers commecnant par 01- , seuls les fichiers générés par le script  sont donc effacés.
 rm -f /tftpboot/pxelinux.cfg/01*
-rm -Rf "$TEMP"
+
+## d'apres flaf ;)
+TEMP=$(cd "$TEMP"; pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
+
+#rm -Rf "$TEMP"
 }
 
 ####fin des fonctions###
