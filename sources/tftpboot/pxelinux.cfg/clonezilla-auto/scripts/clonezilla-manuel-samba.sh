@@ -230,7 +230,7 @@ else
  echo "Clonage annulé"
  #on efface les fichiers temporaires créés 
  # protection de la variable poru le rm merci flaf ;)
- TEMP=$(cd "$TEMP"; pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
+ TEMP=$(cd "$TEMP" && pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
 
  exit  
 fi
@@ -315,7 +315,7 @@ fi
 rm -f /tftpboot/pxelinux.cfg/01*
 
 ## d'apres flaf ;)
-TEMP=$(cd "$TEMP"; pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
+ TEMP=$(cd "$TEMP" && pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
 
 #rm -Rf "$TEMP"
 }
