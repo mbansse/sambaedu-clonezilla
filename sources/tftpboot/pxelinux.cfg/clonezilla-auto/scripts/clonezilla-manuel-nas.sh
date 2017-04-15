@@ -1,12 +1,19 @@
 #!/bin/bash
 # Script du 15 Mars 2017, Marc Bansse 
+
+#récupération des paramètres se3 --> ipse3  
+. /etc/se3/config_m.cache.sh
+
+
 #variables
 TEMP="/tftpboot/pxelinux.cfg/clonezilla-auto/temp"
 CHEMIN="/tftpboot/pxelinux.cfg/clonezilla-auto"
 LISTE-IMAGE="/tftpboot/pxelinux.cfg/clonezilla-auto/liste-image"
-IPSE3="172.20.0.2"
 DATE=`date +%Y-%m-%d-%H-%M`
-
+####
+# A voir comment modifier ce qui suit afin que l'ip soit récupérée dans un fichier de conf ou la bdd
+IPNAS="172.16.255.62"
+####
 
 
 mkdir -p "$CHEMIN"/log/"$DATE"
@@ -36,7 +43,7 @@ rm -f "$CHEMIN"/inventaire/inventaire*
 echo "montage du nas dans le répertoire liste-image"
 echo "Si le script semble s'arreter, c'est que le montage a échoué,  faire CTRL + C pour revenir au terminal"
 #le partage samba contenant les images est monté dans le répertoire liste_image juste pour établir le fichier  contenant la liste des images disponibles.
-mount -t nfs 172.16.255.62:/volume1/cz_img/ "$CHEMIN"/liste-image/ 
+mount -t nfs $IPNAS:/volume1/cz_img/ "$CHEMIN"/liste-image/ 
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
@@ -89,7 +96,7 @@ label disk2
 label clonezilla
 #MENU LABEL Clonezilla restore "$choix" (partimag)
 KERNEL clonezilla64/vmlinuz
-APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t nfs 172.16.255.62:/volume1/cz_img/ /home/partimag/ "  ocs_live_run="ocs-sr  -e1 auto -e2  -r  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$IPSE3/clonezilla64/filesystem.squashfs
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t nfs $IPNAS:/volume1/cz_img/ /home/partimag/ "  ocs_live_run="ocs-sr  -e1 auto -e2  -r  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/clonezilla64/filesystem.squashfs
 
 # Choix de boot par défaut:
 default clonezilla

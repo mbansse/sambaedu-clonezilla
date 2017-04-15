@@ -4,7 +4,10 @@
 TEMP=$(mktemp -d --suffix=-clonezilla-auto)
 #récupération des variables se3
 . /etc/se3/config_m.cache.sh
-BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
+
+# partie ldap
+. /etc/se3/config_l.cache.sh
+
 DATE=`date +%Y-%m-%d-%H-%M`
 
 #----- -----
@@ -61,11 +64,8 @@ mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
-<<<<<<< HEAD
 rm -Rf "$TEMP"
-=======
-bash "$CHEMIN"/scripts/efface-temp
->>>>>>> 8a7c38d8ff6adf1942c98e75cdec2e688a7d2eb0
+bash "$CHEMIN"/scripts/efface-temp.sh
 exit
 else
 clear
@@ -85,11 +85,9 @@ umount  "$LISTE_IMAGE"
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
-<<<<<<< HEAD
+
 rm -Rf "$TEMP"
-=======
-bash "$CHEMIN"/scripts/efface-temp
->>>>>>> 8a7c38d8ff6adf1942c98e75cdec2e688a7d2eb0
+bash "$CHEMIN"/scripts/efface-temp.sh
 exit
 else
 clear
@@ -147,14 +145,13 @@ echo "le script génère le nouveau fichier d'inventaire des machines( cela pren
 
 fich_nom_ip_mac_parcs="$TEMP/inventaire.csv"
 
-BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
-ldapsearch -xLLL -b ou=computers,$BASE cn | grep ^cn | cut -d" " -f2 | while read nom
+ldapsearch -xLLL -b ou=computers,$ldap_base_dn cn | grep ^cn | cut -d" " -f2 | while read nom
 do
         if [ ! -z $(echo ${nom:0:1} | sed -e "s/[0-9]//g") ]; then
                 # PB: on récupère les cn des entrées machines aussi (xpbof et xpbof$)
-                ip=$(ldapsearch -xLLL -b ou=computers,$BASE cn=$nom ipHostNumber | grep ipHostNumber | cut -d" " -f2)
-                mac=$(ldapsearch -xLLL -b ou=computers,$BASE cn=$nom macAddress | grep macAddress | cut -d" " -f2)
-                parcs=$( ldapsearch -xLLL  -b ou=Parcs,$BASE | sed -e '/./{H;$!d;}' -e 'x;/'$nom'/!d;'|grep dn: |sed 's/.*cn=//' |sed 's/,ou.*//'|sed 1n | tr '\n' ' ' |sed 's/>%/>\n/g')
+                ip=$(ldapsearch -xLLL -b ou=computers,$ldap_base_dn cn=$nom ipHostNumber | grep ipHostNumber | cut -d" " -f2)
+                mac=$(ldapsearch -xLLL -b ou=computers,$ldap_base_dn cn=$nom macAddress | grep macAddress | cut -d" " -f2)
+                parcs=$( ldapsearch -xLLL  -b ou=Parcs,$ldap_base_dn | sed -e '/./{H;$!d;}' -e 'x;/'$nom'/!d;'|grep dn: |sed 's/.*cn=//' |sed 's/,ou.*//'|sed 1n | tr '\n' ' ' |sed 's/>%/>\n/g')
                 if [ ! -z "$ip" -a ! -z "$mac" ]; then
                         echo "$ip;$nom;$mac;$parcs" >> $fich_nom_ip_mac_parcs
 
@@ -169,7 +166,7 @@ echo "Terminé."
 
 echo ""
 #On effectue une recherche ldap pour  afficher l'ensemble des parcs  mis en place. Chaque parc est espacé d'un autre.
-LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$BASE|grep dn:|sed 's/.*cn=//'|sed 's/,ou.*//' |sed '1d' |sed 1n |sed 's/$/ /'| tr '\n' ' ' |sed 's/>%/>\n/g')
+LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$ldap_base_dn|grep dn:|sed 's/.*cn=//'|sed 's/,ou.*//' |sed '1d' |sed 1n |sed 's/$/ /'| tr '\n' ' ' |sed 's/>%/>\n/g')
 }
 
 choix_machines()
