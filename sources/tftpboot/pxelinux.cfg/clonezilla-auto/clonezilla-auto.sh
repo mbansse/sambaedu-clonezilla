@@ -3,9 +3,9 @@
 #####################################################################################
 ##### Script permettant de lancer des commandes PXE
 ##### Il servira essentiellement à restaurer des images clonezilla sur des postes clients
-##### pour une restauration du serveur SE3
-##### version du 16/04/2014
-##### modifiée le 29/06/2016
+##### 
+##### version du 16/04/2016
+##### modifiée 
 #
 # Auteurs :      Marc Bansse marc.bansse@ac-versailles.fr
 #
@@ -35,17 +35,98 @@ TEMP=$(mktemp -d --suffix=-clonezilla-auto)
 #récupération des variables se3 (variable se3ip)
 . /etc/se3/config_m.cache.sh
 
-
 # partie ldap --> init $ldap_base_dn
 . /etc/se3/config_l.cache.sh
 
 DATE=`date +%Y-%m-%d-%H-%M`
+
+#création du répertoire /var/log/clonezilla-auto (utile seulement la première fois).
+mkdir -p /var/log/clonezilla-auto
 #variable  à changer et à décommenter
 PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
-mkdir -p /var/log/clonezilla-auto/$DATE
-LOG="/var/log/clonezilla-auto/$DATE/"
 
 
+
+#options du script
+
+#while :; do
+#	case $1 in
+#		-h|-\?|--help)
+#		echo "test de l'option 1"
+#		exit
+#		;;
+#	esac
+#done
+
+
+
+################fonctions du script################## (à mettre dans un odre plus cohérent...plus tard!##################
+recuperer_options()
+{
+suite_options="help"
+suite_options="$suite_options,choix-lanceur::,cl::"
+suite_options="$suite_options,rappel-parc::,rp::"
+suite_options="$suite_options,debut-ip::,di::"
+
+LISTE_OPTIONS=$(getopt --options h --longoptions "$suite_options"   -- "$@")
+
+
+    
+    unset -v suite_options
+    
+    # Évaluation de la chaîne $LISTE_OPTIONS afin de positionner 
+    # $1, $2 comme étant la succession des mots de $LISTE_OPTIONS.
+    eval set -- "$LISTE_OPTIONS"
+    
+    # On peut détruire la variable LISTE_OPTIONS.
+    unset -v LISTE_OPTIONS 
+    
+    # On définit des variables indiquant si les options ont été
+    # appelées. Par défaut, elles ont la valeur "false", c'est-à-dire
+    # qu'il n'y a pas eu appel des options.
+    OPTION_CHOIX_LANCEUR="false"
+    OPTION_RAPPEL_PARC="false"
+    OPTION_DEBUT_IP="false"
+while true
+    do
+        case "$1" in
+        
+            -h|--help)
+              echo " Aide : voir la documentation (https://github.com/SambaEdu/se3-docs/blob/master/se3-clients-linux/options_scripts.md) associée." 
+                exit 0
+            ;;
+            
+            --choix-lanceur|--cl)
+                OPTION_CHOIX_LANCEUR="true"
+                choixlanceur="$2"
+                
+                shift 2
+
+	            ;;
+	    --debut-ip|--di)
+                OPTION_DEBUT_IP="true"
+                debutip="$3"
+                echo "critere de recherche : $debutip" 
+                shift 2
+            ;;
+            	
+
+esac
+done
+}
+
+
+
+
+
+creation_log()
+{
+touch /var/log/clonezilla-auto/$DATE
+LOG="/var/log/clonezilla-auto/$DATE"
+echo "Journal de l'opération du $DATE" >> "$LOG"
+echo "" >> "$LOG"
+echo " Le compte-rendu de l'opération sera écrit dans le fichier $LOG ."
+}
 
 
 
@@ -58,11 +139,11 @@ echo "...............................?~~~~=..............~+=....................
 echo "..............................?~~~.?~.............=+++~.................~~=++++:...........................,~~~,........"
 echo "..............................~~~...~?...........~++++~...............+++++++++~.......................~~III~=III7~....."
 echo ".............................=~~....=~...........++++~~................++++++~~......................~???~.....~7777~..."
-echo ".............................~~~....=~..........~+~~~~.................:+++++~......................~???III=:...?7777~.."
-echo ".?=~+?..++~~~=?.?+=~=??+~~=.+~~?~~?.~~I=~~~=?....~......................=+++++...............+~,....~???IIIII~.~77777~.."
-echo "?~~=..=~~+.~~~:+~~?=~~~.~~~.~~~.:~~?+~~?.~~~....~:+++++~~...............~+++++~..............++++++~~???IIIII,.~77777~.."
-echo ":+~~~??:~~=~~=.~~~.:~:.+~~??~~~~~~+~+~~~?:~?.~++++++++++++:.....:++++:...+++++~..+++++++++~.,++++~~~.:~=?=~~..~777777~.."
-echo ".......................~~:.........=~?......~+++:~~~:,~:+++~...~++++++++.+++++~.~~~~~~+++:~.~+++:,..........~II7777~~..."
+echo -e "\033[1mse3se3\033[0m.\033[1mse3se3\033[0m.\033[1mse\033[0m..\033[1m3s\033[0m.\033[1mse3se\033[0m..\033[1mse3se3\033[0m..=~..........~+~~~~.................:+++++~......................~???III=:...?7777~.."
+echo -e "\033[1me\033[0m......\033[1me\033[0m....\033[1ms\033[0m.\033[1me\033[0m.\033[1m3s\033[0m.\033[1me\033[0m.\033[1me\033[0m....\033[1ms\033[0m.\033[1me\033[0m....\033[1ms\033[0m..~~I=~~~=?....~......................=+++++...............+~,....~???IIIII~.~77777~.."
+echo -e "\033[1m3se3se\033[0m.\033[1m3se3se\033[0m.\033[1m3\033[0m....\033[1m3\033[0m~\033[1m3se3s\033[0m..\033[1m3se3se\033[0m~?+~~?.~~~....~:+++++~~...............~+++++~..............++++++~~???IIIII,.~77777~.."
+echo -e ".....\033[1me\033[0m.\033[1ms\033[0m....\033[1m3\033[0m.\033[1ms\033[0m....\033[1ms\033[0m:\033[1ms\033[0m....\033[1m3\033[0m.\033[1ms\033[0m....\033[1m3\033[0m.~+~~~?:~?.~++++++++++++:.....:++++:...+++++~..+++++++++~.,++++~~~.:~=?=~~..~777777~.."
+echo -e "\033[1mse3se3\033[0m.\033[1me\033[0m....\033[1ms\033[0m.\033[1me\033[0m....\033[1me\033[0m.\033[1mse3se3\033[0m.\033[1me\033[0m....\033[1ms\033[0m.=~?......~+++:~~~:,~:+++~...~++++++++.+++++~.~~~~~~+++:~.~+++:,..........~II7777~~..."
 echo "......................~~~=.........~~......~++++~......:++++:.~+++++++++++++++~.....:++++~..~+++~........~IIIII~~~......"
 echo "....................?I~~~?........=~~......+++++++++++++++++~,++++++++++++++++~....:++++~:..?+++~........:~~~~IIIIII=~.."
 echo ".....................:~~=?~.......~~~......++++++~~+++++++++~:+++++:~~~~~+++++~...~+++++~..,++++~.............~IIIIIII~."
@@ -76,7 +157,7 @@ echo ".......................+~:...~?................~=++++++++~~....~~~~~~~~,~:
 echo "........................~~+?+....................~~~~~~~~................~.........~~~~~..::~,..........,~~~~~~~,......."
 echo "...........................................................................................:............................"
 echo ""
-echo " Clonezilla-auto permet de:"
+echo " Ce script va permettre de:"
 echo ""
 echo -e "\033[31m(1)\033[0m\033[4mMettre en place un partage samba  appelé \033[1mpartimag\033[0m sur /var/se3, télécharger clonezilla sur le serveur et le rendre accessible automatiquement par adminse3."
 echo ""
@@ -84,9 +165,12 @@ echo -e "\033[31m(2)\033[0mRestaurer automatiquement une image clonezilla placé
 echo ""
 echo -e "\033[31m(3)\033[0mRestaurer automatiquement une image clonezilla placée dans un partage samba (autre que sur SE3) sur un parc de machine (ou machine seule)."
 echo ""
-echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une machine ou un parc de machines"
+echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une mchine ou un ensemble de machines"
+echo ""
+creation_log
 echo ""
 echo -e "Entrer le \033[31mnumero\033[0m correspondant à votre choix ou \033[4mn'importe quoi\033[0m pour quitter, puis la touche entrée."
+
 read  choixlanceur
 }
 
@@ -141,11 +225,12 @@ echo "recopier parmi la liste suivante la commande pxe à envoyer ( type d'image
 #la liste des fichiers de commande pxe est placée dans le répertoire pxeperso, son contenu va être lu ici.
 ls  "$PXE_PERSO"
 read choix
-
+echo "" >> "$LOG"
+echo " Voux avez choisi la commande pxe-perso appelée $choix" >> "$LOG"
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(ls "$PXE_PERSO" |grep "$choix")
 #si ce qui a été  tapé ne correspond à aucune ligne de la liste, alors le script s'arrête.
-if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté" >> "$LOG"
 exit
 else
 echo "les commandes pxe personnalisées contenues dans  $choix seront envoyées sur les postes"
@@ -259,7 +344,7 @@ touch /var/se3/clonezilla/modif_ok
 rm -Rf /var/se3/temp/
 }
 
-ajout_pxe()
+ajout_dans_menu_pxe()
 {
 #etape 4, on va ajouter dans le menu perso.menu l'intrée clonezilla avec le montage du partage déjà fait
 cat <<EOF>> /tftpboot/pxelinux.cfg/perso.menu
@@ -294,6 +379,8 @@ choix_clonezilla()
 echo " Vous devez choisir si vous voulez utiliser la version 32 bits (clonezilla), ou la version 64 bits (clonezilla64) "
 echo -e "Taper \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m puis appuyer sur entrée ."
 read CLONEZILLA
+echo "" >> "$LOG"
+echo "Vous avez choisi la version $CLONEZILLA" >> "$LOG"
 }
 
 prealable_samba()
@@ -301,35 +388,28 @@ prealable_samba()
 #creation du répertoire de montage pour la première utilisation et mise en variable
 mkdir -p /mnt/liste-image/
 LISTE_IMAGE="/mnt/liste-image/"
-#création du répertoire contenant les fichiers temporaires et mise en variable
-mkdir -p /var/log/clonezilla-auto/$DATE
-LOG="/var/log/clonezilla-auto/$DATE/"
 }
 
 prealable_se3()
 {
 #creation du répertoire de montage pour la première utilisation et mise en variable
 LISTE_IMAGE="/var/se3/partimag/"
-#création du répertoire contenant les fichiers temporaires et mise en variable
-mkdir -p /var/log/clonezilla-auto/$DATE
-LOG="/var/log/clonezilla-auto/$DATE/"
 }
 
 
 choix_samba()
 {
 #L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp
-#echo ""
-#echo ""
-#echo " Vous devez choisir si vous voulez utiliser la version 32 bits (clonezilla), ou la version 64 bits (clonezilla64) "
-#echo -e "Taper \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m puis appuyer sur entrée ."
-#read CLONEZILLA
+echo "" 
 echo -e "\033[34mEntrer l'ip du partage samba\033[0m (ex  172.20.0.6)"
 read IPSAMBA
+echo "ip du partage samba choisi: $IPSAMBA" >> "$LOG"
 echo -e "\033[34mEntrer le nom du partage samba\033[0m  (ex partimag) "
 read PARTAGE
+echo "Nom du partage samba choisi: $PARTAGE" >> "$LOG"
 echo -e "\033[34mEntrer le nom d'un utilisateur autorisé à lire sur le partage\033[0m (ex clonezilla)"
 read USER
+echo "Nom d'utilisateur choisi pour lire les images dans le partage samba : $USER" >> "$LOG"
 echo -e "\033[34mEntrer le mot de passe de l'utilisateur\033[0m  (le mot de passe n'apparait pas sur l'écran )"
 read -s MDP
 }
@@ -341,26 +421,36 @@ mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
+echo "" >> "$LOG"
+echo "Montage du partage samba" >> "$LOG"
+echo "Echec du montage du partage samba, il faut vérifier les données entrées" >> "$LOG"
 rm -Rf "$TEMP"
 exit
 else
 clear
 echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+echo " Montage du partage samba: Montage du partage samba réussi" >> "$LOG"
 fi
 }
 
 choix_image_samba()
 {
+echo "" >> "$LOG"
+echo " Choix d'une image à restaurer:" >> "$LOG"
 # on affiche la liste des images disponibles sur le partage.
 ls   "$LISTE_IMAGE"
 #la liste des  images est écrite dans un fichier liste 
 ls   "$LISTE_IMAGE" > "$TEMP"/liste
+echo "" >> "$LOG"
+echo "Voici la liste des images disponibles: $LISTE_IMAGES" >> "$LOG"
 read choix
+echo " image choisie par l'utilisateur: $choix" >> "$LOG"
 #On démonte le partage samba du se3
 umount  "$LISTE_IMAGE"
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
+echo "Pas d'image choisie ou image inexistante: script arreté!" >> "$LOG"
 rm -Rf "$TEMP"
 exit
 else
@@ -374,6 +464,7 @@ choix_image_se3()
 
 # on vérifie qu'il y a bien une image à restaurer sur le partage (on va voir directement le contenu de /var/se3/partimag/).
 ls   "$LISTE_IMAGE"
+echo "Liste des imaes disponibles sur le se3: $LISTE_IMAGE" >> "$LOG"
 if [ "$LISTE_IMAGE" = ""  ]; then echo " pas d'image dans le répertoire /var/se3/partimag/"
 exit
 else
@@ -386,7 +477,7 @@ fi
 ls   "$LISTE_IMAGE"
 ls   "$LISTE_IMAGE" > "$TEMP"/liste
 read choix
-
+echo " image choisie par l'utilisateur: $choix" >> "$LOG"
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
@@ -432,6 +523,11 @@ timeout 60
 # Si on ne permet pas, le timeout n'est pas pris en compte.
 prompt 1
 EOF
+
+echo "Voici le contenu  de la commande PXE créée par le script" >> "$LOG"
+cat "$TEMP"/pxe-perso >> "$LOG"
+echo "" >> "$LOG"
+
 }
 
 creation_pxe_perso_se3()
@@ -467,6 +563,9 @@ timeout 60
 # Si on ne permet pas, le timeout n'est pas pris en compte.
 prompt 1
 EOF
+echo "Voici le contenu  de la commande PXE créée par le script" >> "$LOG"
+cat "$TEMP"/pxe-perso >> "$LOG"
+echo "" >> "$LOG"
 }
 
 
@@ -485,7 +584,7 @@ echo "le script génère le nouveau fichier d'inventaire des machines( cela pren
 
 fich_nom_ip_mac_parcs="$TEMP/inventaire.csv"
 
-
+BASE=$(grep "^BASE" /etc/ldap/ldap.conf | cut -d" " -f2 )
 ldapsearch -xLLL -b ou=computers,$ldap_base_dn cn | grep ^cn | cut -d" " -f2 | while read nom
 do
         if [ ! -z $(echo ${nom:0:1} | sed -e "s/[0-9]//g") ]; then
@@ -518,10 +617,12 @@ echo""
 echo -e "Entrer \033[1mle nom du parc\033[0m (ex sciences) ou \033[1mles premiers octets\033[0m de l'ip du parc à cloner (ex 172.20.50.)\033[0m"
 echo -e "S'il faut restaurer seulement \033[1mun poste\033[0m, on entrera l'adresse ip (ex 172.20.50.101) ou le nom  du poste (ex s218-2)" 
 read debutip
-
+echo "vous avez choisi comme parametre de recherche de machine: $debutip" >> "$LOG"
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
 cat  $TEMP/inventaire* |grep "$debutip" > "$TEMP"/exportauto
 #On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient quatre colonnes ip;nom-netbios;mac;parcs   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0;m72e sciences) 
+echo "voici  le contenu du fichier exportauto qui contient les éléments  ip:nom:mac:parcs" >> "$LOG"
+cat  "$TEMP"/exportauto >> "$LOG"
 
 #on ne garde que la deuxième colonne pour avoir la liste des postes sensés être clonés qu'il faudra vérifier.
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes
@@ -552,7 +653,8 @@ else echo "On continue"
  fi
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/verifpostes2
 POSTES2=$(cat "$TEMP"/verifpostes2)
-
+echo " voici la liste des postes choisi après vérification" >> "$LOG"
+cat  "$TEMP"/verifpostes2 >> "$LOG"
 clear
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
@@ -569,10 +671,9 @@ fi
 if [ "$REPONSE2" = oui ]; then  echo "On lance le clonage" 
 else
  echo "Clonage annulé"
+echo "Vous n'avez pas répondu oui à la vérification, le clonage est annulé ">> "$LOG"
  #on efface les fichiers temporaires créés
-# rm -f "$TEMP"/* protection de la variable
-TEMP=$(cd "$TEMP" && pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
-
+rm -f "$TEMP"/*
  exit  
 fi
 }
@@ -581,20 +682,24 @@ generation_variables()
 {
 #ici, le fichier exportauto a été  édité et contient donc la véritable liste des postes à restaurer
 #On le sauvegarde dans log pour vérifier en cas de problème.
-cp "$TEMP"/exportauto "$LOG"
+echo "Voici le contenu du fichier export-auto contenant la liste non éditée des postes, ip;mac et parcs" >> "$LOG"
+cat "$TEMP"/exportauto >> "$LOG"
 
 #on supprime les deux premières colonnes contenant le nom et l'ip pour ne garder que la troisième colonne contenant l'adresse mac.
 cut -d';' -s -f3   "$TEMP"/exportauto > "$TEMP"/liste1
-cp "$TEMP"/liste1 "$LOG"mac
+echo "voici le contenu du fichier liste1 (seulement adresses mac normalement) " >> "$LOG"
+cat "$TEMP"/liste1 >> "$LOG"
 
 #on ne garde que la deuxième colonne pour avoir la liste des postes cloné
 cut -d';' -s -f2   "$TEMP"/exportauto > "$TEMP"/postes
-cp "$TEMP"/postes "$LOG"
+echo "Voici le contenu du fichier postes contenant la liste non éditée des postes" >> "$LOG"
+cat "$TEMP"/postes >> "$LOG"
 
 # on modifie  le fichier liste1 pour remplacer les ":" par des "-" pour la création du fichier 01-suitedel'adressemac
 sed 's/\:/\-/g' "$TEMP"/liste1 > "$TEMP"/listeok
 cp "$TEMP"/listeok "$LOG"mac_tirets
-
+echo "Voici la liste des adresses mac avec des - " >> "$LOG"
+cat "$TEMP"/listeok >> "$LOG"
 
 #On place la première adresse mac de la listemac  dans une variable pour créer ensuite le fichier de commande pxe personnalisé du poste.
 #toutes les majuscules de l'adresse mac doivent être transformées en minuscules, ou le pxe du poste ne sera pas pris en compte par la machine
@@ -618,6 +723,7 @@ chmod 644 /tftpboot/pxelinux.cfg/01-*
  
 
 #si le poste est déjà allumé sous windows, on lui envoie un signal de reboot
+echo " On envoie un signal de reboot suivi d'un signal d'allumage pour $NOM_CLIENT . Le poste étant soit arreté, soit démarré, il y aura un des deux signaux qui provoquera un  message d'erreur sans importance" 
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" reboot
 /usr/share/se3/scripts/start_poste.sh  "$NOM_CLIENT" wol
 
@@ -651,6 +757,7 @@ cp "$PXE_PERSO"/"$choix" "$LOG"/01-"$mac"-"$NOM_CLIENT"
 
 
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
+echo " On envoie un signal de reboot suivi d'un signal d'allumage pour $NOM_CLIENT . Le poste étant soit arreté, soit démarré, il y aura un des deux signaux qui provoquera un  message d'erreur sans importance"
 /usr/share/se3/scripts/start_poste.sh "$NOM_CLIENT" reboot
 /usr/share/se3/scripts/start_poste.sh "$NOM_CLIENT" wol
 #la première ligne du fichier listeok est à supprimer pour que l'opération continue avec les adresses mac suivantes. Idem avec les autres fichiers
@@ -685,32 +792,33 @@ fi
 
 #on efface tous les fichiers commecnant par 01- , seuls les fichiers générés par le script  sont donc effacés.
 rm -f /tftpboot/pxelinux.cfg/01*
-# rm -Rf "$TEMP"
-
+#rm -Rf "$TEMP"
 ## d'apres flaf ;) - on protège la variable....
- TEMP=$(cd "$TEMP" && pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
+TEMP=$(cd "$TEMP" && pwd) && printf '%s\n' "$TEMP" | grep -q '^/tmp/' && \rm -r --one-file-system "$TEMP"
+
+echo " Opération terminée. Vous pouvez consulter le compte-rendu dans le fichier $LOG ."
 }
 
 ####fin des fonctions###
 
 
 
-###début du programme###
+###############################################################début du programme###########################################################################################
 #logo est commun à tous les sous-scripts
-logo
+#recuperer_options  
 
 
-if [ "$choixlanceur" = "1" ]
-then
+script1()
+{
 accueil_mise_en_place
 creation_partage
 modif_clonezilla
-ajout_pxe
-exit
+ajout_dans_menu_pxe
+}
 
-elif [ "$choixlanceur" = "2" ]
-then
-#bash  "$CHEMIN"/scripts/clonezilla-manuel-se3
+
+script2()
+{
 accueil_se3
 prealable_se3
 choix_clonezilla
@@ -721,9 +829,10 @@ choix_machines
 generation_variables
 boucle
 fin_script_samba
-echo "bonjour choix n°2"
-elif [ "$choixlanceur" = "3" ]
-then
+}
+
+script3()
+{
 accueil_samba
 prealable_samba
 choix_clonezilla
@@ -736,15 +845,38 @@ choix_machines
 generation_variables
 boucle
 fin_script_samba
+}
 
-elif [  "$choixlanceur" = "4"  ]
-then
+script4()
+{
 accueil_pxeperso
 maj_machines
 choix_machines
 generation_variables
 boucle_pxeperso
 fin_script_samba
+}
+
+#logo
+#recuperer_options "$@"
+logo
+if [ "$choixlanceur" = "1" ]
+then
+echo "Vous avez choisi de mettre en place un partage samba." >> "$LOG"
+script1
+exit
+elif [ "$choixlanceur" = "2" ]
+then
+echo "Vous avez choisi de restaurer une image présente sur le se3 sur des postes." >> "$LOG"
+script2
+elif [ "$choixlanceur" = "3" ]
+then
+echo "Vous avez choisi de restaurer une image présente sur un partage samba sur des postes." >> "$LOG"
+script3
+elif [  "$choixlanceur" = "4"  ]
+then
+echo "Vous avez choisi de lancer des commandes PXE personnalisées  sur des postes." >> "$LOG"
+script4
 else exit
 fi
 
