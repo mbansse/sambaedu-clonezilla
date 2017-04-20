@@ -4,14 +4,14 @@ Cet ensemble de scripts est fait pour être utilisé avec les serveurs se3 (samb
 
 ## *Clonezilla-auto* va permettre plusieurs opérations:
 * **Créer un partage samba** (appelé partimag)  sur le se3. Clonezilla sera ensuite téléchargé sur le serveur, puis modifié de façon à ce qu'**adminse3 puisse y écrire/lire des images automatiquement**. 
-* Des entrées dans le menu PXE (perso) seront ajoutées pour que la **création d'image** se fasse en trois touches de clavier. 
+* Des entrées dans le menu PXE (perso) seront ajoutées pour que la **création d'image** se fasse en quelques touches de clavier. 
 * Déployer **automatiquement** à partir d'un shell se3, une image clonezilla préalablement fabriquée vers un/plusieurs poste, ou **tout un parc de machine** si ces images sont sont un partage samba (se3 ou un autre serveur).
 * Envoyer des **commandes personnalisées** (*restauration d'une image avec paramètres déjà entrés, faire une sauvegarde/restauration locale,etc*)
 
 
 ## Pour fonctionner correctement il faut:
 * Que le serveur tftp du se3 soit activé.
-* Que les images clonezilla de postes à déployer soient sur un partage samba accessible en lecture (Travail en cours avec un 'NAS').A défaut, on pourra lancer l'un des scripts qui crééra sur le se3 ce partage (vérifier la place disponible!!!)
+* Que les images clonezilla de postes à déployer soient sur un partage samba accessible en lecture (Travail en cours avec un 'NAS').A défaut, on pourra lancer l'option n°1 du script qui crééra sur le se3 ce partage (vérifier la place disponible!!!)
 * Que les ordinateurs bootent en priorité par le pxe, avec fonction Wakeonlan activée.
 * Que chaque poste client ait une adresse ip réservée dans l'interface dhcp du se3.
 
