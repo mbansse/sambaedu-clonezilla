@@ -1,4 +1,4 @@
 #
-# Regular cron jobs for the se3-clonezilla package
+# Regular cron jobs for the sambaedu-clonezilla package
 #
-0 4	* * *	root	[ -x /usr/bin/se3-clonezilla_maintenance ] && /usr/bin/se3-clonezilla_maintenance
+0 4	* * *	root	[ -x /usr/bin/sambaedu-clonezilla_maintenance ] && /usr/bin/sambaedu-clonezilla_maintenance

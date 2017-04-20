@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for se3-clonezilla
+# prerm script for sambaedu-clonezilla
 #
 # see: dh_installdeb(1)
 

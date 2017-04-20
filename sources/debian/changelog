@@ -1,5 +1,5 @@
-se3-clonezilla (0.1-1) unstable; urgency=low
+sambaedu-clonezilla (0.1-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
 
- -- root <root@debian-se3.stage.ac-rouen.fr>  Mon, 10 Apr 2017 23:39:50 +0200
+ -- root <root@debian-sambaedu.stage.ac-rouen.fr>  Mon, 10 Apr 2017 23:39:50 +0200

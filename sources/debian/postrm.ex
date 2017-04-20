@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for se3-clonezilla
+# postrm script for sambaedu-clonezilla
 #
 # see: dh_installdeb(1)
 
