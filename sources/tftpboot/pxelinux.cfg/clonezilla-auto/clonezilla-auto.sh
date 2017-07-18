@@ -4,7 +4,7 @@
 ##### Script permettant de lancer des commandes PXE
 ##### Il servira essentiellement à restaurer des images clonezilla sur des postes clients
 ##### 
-##### version du 16/04/2016
+##### version du 18/07/2017
 ##### modifiée 
 #
 # Auteurs :      Marc Bansse marc.bansse@ac-versailles.fr
@@ -165,7 +165,10 @@ echo -e "\033[31m(2)\033[0mRestaurer automatiquement une image clonezilla placé
 echo ""
 echo -e "\033[31m(3)\033[0mRestaurer automatiquement une image clonezilla placée dans un partage samba (autre que sur SE3) sur un parc de machine (ou machine seule)."
 echo ""
-echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une mchine ou un ensemble de machines"
+echo -e "\033[31m(4)\033[0mLancer des commandes  pxe personnalisées sur une machine ou un ensemble de machines"
+echo ""
+echo -e "\033[31m(5)\033[0mVérifier votre version de clonezilla et la mettre à jour le cas échéant"
+echo ""
 echo ""
 creation_log
 echo ""
@@ -179,6 +182,83 @@ read  choixlanceur
 
 #Les fonctions notées  *_samba proviennent du script pour restaurer une image placée sur un partage samba quelconque
 #----- -----
+
+accueil_maj_zesty()
+{
+#Principe, on supprime le clonezilla existant, on télécharge deux archives que l'on décompresse
+#Si clonezilla n'a jamais ét installé, il faut créer les répertoires /var/se3/clonezilla et /var/se3/clonezilla64
+mkdir -p /var/se3/clonezilla
+mkdir -p /var/se3/clonezilla64
+
+#Suppression de l'ancien clonezilla i386
+#On télécharge le fichier indiquant la version présente sur le serveur
+cd "$TEMP"
+wget https://edu-nuage.ac-versailles.fr/s/8UWvQ2I3D8bsk7I/download
+mv download version-serveur.txt
+VERSION_SERVEUR=$(cat version-serveur.txt)
+VERSION_LOCALE=$(cat /var/se3/clonezilla64/version-locale.txt)
+
+#Si les deux versions sont différentes, alors le script va  supprimer l'ancien dispositif, et recréer un nouveau
+if [ "$VERSION_SERVEUR" != "$VERSION_LOCALE"  ]; then  echo "Vous ne disposez pas de la dernière version de clonezilla" 
+
+#Suppression de l'ancien clonezilla i386
+#On télécharge le fichier indiquant la version présente sur le serveur
+
+
+cd /tftpboot/
+unlink clonezilla
+
+cd /var/se3
+rm -Rf clonezilla/*
+
+#Récupération de la nouvelle version basée sur Ubuntu
+cd /var/se3/clonezilla
+wget https://edu-nuage.ac-versailles.fr/s/5iPV6MgH1aPkkHd/download
+mv download clonezilla.zip
+unzip clonezilla.zip
+rm -f clonezilla.zip
+cd /tftpboot/
+ln -s /var/se3/clonezilla/ clonezilla
+
+#On refait la même chose avec clonezilla version AMD64
+
+cd /tftpboot/
+unlink clonezilla64
+
+cd /var/se3
+rm -Rf clonezilla64/*
+
+#Récupération de la nouvelle version basée sur Ubuntu Zesty AMD64
+cd /var/se3/clonezilla64
+wget https://edu-nuage.ac-versailles.fr/s/iB4gRVIPcDaNuvv/download
+mv download clonezilla64.zip
+unzip clonezilla64.zip
+rm -f clonezilla64.zip
+cd /tftpboot/
+ln -s /var/se3/clonezilla64/ clonezilla64
+cd /var/se3/clonezilla64
+#On créer un fichier VERSIONLOCALE pour vérifier plus tard si la dernière version est bien celle présente sur le se3
+wget https://edu-nuage.ac-versailles.fr/s/8UWvQ2I3D8bsk7I/download
+mv download version-locale.txt
+
+#On remet le fichier de test qui servira à l'interface
+
+cat <<EOF>> /var/se3/clonezilla/script_clonezilla_test.sh
+
+#!/bin/bash
+echo "Test clonezilla: $(date +%Y%m%d%H%M%S)">>/tmp/test_clonezilla.txt
+
+EOF
+chmod u+x /var/se3/clonezilla/script_clonezilla_test.sh
+echo "La dernière version de clonezilla a été installée"
+
+exit
+else
+echo "Vous disposez déjà de la dernière version de clonezilla présente sur le serveur"
+fi
+
+}
+
 
 accueil_mise_en_place()
 {
@@ -275,8 +355,7 @@ modif_clonezilla()
 VERIF=$(ls -l /var/se3/ |grep clonezilla )
 if [ "$VERIF" = ""  ]; then  echo " Clonezilla n'est pas installé sur le se3, l'archive va être téléchargée."
 #on lance le script de téléchargement de clonezilla
-
-bash /usr/share/se3/scripts/se3_get_clonezilla.sh
+accueil_maj_zesty
 
 else
 clear
@@ -288,7 +367,13 @@ fi
 #on installe le paquet squashfs-tools
 apt-get install -y --force-yes squashfs-tools
 
-#Modification du livecd clonezilla x86
+#Modification du livecd clonezilla i386
+echo "Voulez-vous modifier le livecd Clonezilla pour qu'adminse3 puisse se connecter automatiquement au partage samba PARTIMAG placé dans /var/se3/partimag ?"
+echo "taper OUI pour proceder à cette modification ou autre chose pour quitter"
+read demandemodif
+
+if [ "$demandemodif" = "OUI"  ]; then  echo "Modification des fichiers de clonezilla, cela prendra un certain temps..."
+
 cd /var/se3/clonezilla
 mkdir -p /var/se3/temp/
 cp /var/se3/clonezilla/filesystem.squashfs /var/se3/temp/
@@ -342,6 +427,12 @@ mv /var/se3/temp/filesystem.squashfs /var/se3/clonezilla64/filesystem.squashfs
 chmod 444 /var/se3/clonezilla64/filesystem.squashfs
 touch /var/se3/clonezilla/modif_ok
 rm -Rf /var/se3/temp/
+
+else
+echo  "Pas de modification, fin du script."
+exit
+fi
+
 }
 
 ajout_dans_menu_pxe()
@@ -804,9 +895,6 @@ echo " Opération terminée. Vous pouvez consulter le compte-rendu dans le fichi
 
 
 ###############################################################début du programme###########################################################################################
-#logo est commun à tous les sous-scripts
-#recuperer_options  
-
 
 script1()
 {
@@ -857,7 +945,12 @@ boucle_pxeperso
 fin_script_samba
 }
 
-#logo
+script5()
+{
+accueil_maj_zesty
+modif_clonezilla
+}
+
 #recuperer_options "$@"
 logo
 if [ "$choixlanceur" = "1" ]
@@ -877,6 +970,10 @@ elif [  "$choixlanceur" = "4"  ]
 then
 echo "Vous avez choisi de lancer des commandes PXE personnalisées  sur des postes." >> "$LOG"
 script4
+elif [  "$choixlanceur" = "5"  ]
+then
+echo "Vous avez choisi de vérifier/mettre à jour votre version de clonezilla." >> "$LOG"
+script5
 else exit
 fi
 
