@@ -1,0 +1,34 @@
+# Script de boot pour machines M72e avec l'image de tertiaire 
+
+
+
+# Echappatoires pour booter sur le DD:
+label 0
+   localboot 0x80
+label a
+   localboot 0x00
+label q
+   localboot -1
+label disk1
+   localboot 0x80
+label disk2
+  localboot 0x81
+
+
+#Commande PXE perso- le client va démarrer clonezilla et va indiqué être u client pret à recevoir l'image sur le serveur d'ip 172.20.0.42 (à modifier)
+label Clonezilla-client-multicast
+#MENU LABEL Clonezilla mode_client_multicast
+KERNEL clonezilla64/vmlinuz
+APPEND initrd=clonezilla64/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun=""  ocs_live_run="ocs-live-get-img 172.20.0.42 " ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://172.20.0.2/clonezilla64/filesystem.squashfs
+
+
+# Choix de boot par défaut:
+default clonezilla
+
+# On boote après 6 secondes:
+timeout 60
+
+# Permet-on à l'utilisateur de choisir l'option de boot?
+# Si on ne permet pas, le timeout n'est pas pris en compte.
+prompt 1
+

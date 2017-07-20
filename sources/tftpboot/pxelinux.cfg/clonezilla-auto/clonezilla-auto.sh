@@ -185,7 +185,7 @@ read  choixlanceur
 
 accueil_maj_zesty()
 {
-#Principe, on supprime le clonezilla existant, on télécharge deux archives que l'on décompresse
+#Principe, on télécgarge un fichier version.txt sur le serveur, on compare son contenu avec le contenu du même fichier local. Si le contenu est différent, on supprime le clonezilla existant, on télécharge deux archives que l'on décompresse
 #Si clonezilla n'a jamais ét installé, il faut créer les répertoires /var/se3/clonezilla et /var/se3/clonezilla64
 mkdir -p /var/se3/clonezilla
 mkdir -p /var/se3/clonezilla64
