@@ -42,79 +42,38 @@ DATE=`date +%Y-%m-%d-%H-%M`
 
 #création du répertoire /var/log/clonezilla-auto (utile seulement la première fois).
 mkdir -p /var/log/clonezilla-auto
-#variable  à changer et à décommenter
+#variable  A ADAPTER A VOTRE SE3 et à décommenter
 PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
 
 
 
-#options du script
-
-#while :; do
-#	case $1 in
-#		-h|-\?|--help)
-#		echo "test de l'option 1"
-#		exit
-#		;;
-#	esac
-#done
-
-
-
-################fonctions du script################## (EN TESTS...ne marche pas en l'état)!##################
-recuperer_options()
-{
-suite_options="help"
-suite_options="$suite_options,choix-lanceur::,cl::"
-suite_options="$suite_options,rappel-parc::,rp::"
-suite_options="$suite_options,debut-ip::,di::"
-
-LISTE_OPTIONS=$(getopt --options h --longoptions "$suite_options"   -- "$@")
-
-
-    
-    unset -v suite_options
-    
-    # Évaluation de la chaîne $LISTE_OPTIONS afin de positionner 
-    # $1, $2 comme étant la succession des mots de $LISTE_OPTIONS.
-    eval set -- "$LISTE_OPTIONS"
-    
-    # On peut détruire la variable LISTE_OPTIONS.
-    unset -v LISTE_OPTIONS 
-    
-    # On définit des variables indiquant si les options ont été
-    # appelées. Par défaut, elles ont la valeur "false", c'est-à-dire
-    # qu'il n'y a pas eu appel des options.
-    OPTION_CHOIX_LANCEUR="false"
-    OPTION_RAPPEL_PARC="false"
-    OPTION_DEBUT_IP="false"
-while true
-    do
-        case "$1" in
-        
-            -h|--help)
-              echo " Aide : voir la documentation (https://github.com/SambaEdu/se3-docs/blob/master/se3-clients-linux/options_scripts.md) associée." 
-                exit 0
-            ;;
-            
-            --choix-lanceur|--cl)
-                OPTION_CHOIX_LANCEUR="true"
-                choixlanceur="$2"
-                
-                shift 2
-
-	            ;;
-	    --debut-ip|--di)
-                OPTION_DEBUT_IP="true"
-                debutip="$3"
-                echo "critere de recherche : $debutip" 
-                shift 2
-            ;;
-            	
-
+#options du script 
+#### EN TEST!!!!!######
+optspec=":-:"
+while getopts "$optspec" optchar; do
+case "${OPTARG}" in
+   help)
+echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonezilla) associée." 
+echo " options disponibles:"
+echo " --mode 2 pour choisir de façon automatique le choix numéro deux du menu de départ" 
+echo " --rappel_parc (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
+exit 1
+;;
+h)
+echo " Aide : voir la documentation (https://github.com/SambaEdu/se3-docs/blob/master/se3-clients-linux/options_scripts.md) associée."
+exit 1
+;;
+mode)
+valeur="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+choixlanceur="$valeur"
+;;
+rappel_parc)
+LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$ldap_base_dn|grep dn:|sed 's/.*cn=//'|sed 's/,ou.*//' |sed '1d' |sed 1n |sed 's/$/ /'| tr '\n' ' ' |sed 's/>%/>\n/g')
+echo "$LISTE_PARCS"
+exit 1
+;;
 esac
 done
-}
-
 
 
 
@@ -134,6 +93,8 @@ echo -e "\033[31m  Le compte-rendu de l'opération sera écrit dans le fichier $
 
 logo()
 {
+
+if [ "$choixlanceur" = ""  ]; then  
 clear
 echo "...............................?~~~~=..............~+=.................................................................."
 echo "..............................?~~~.?~.............=+++~.................~~=++++:...........................,~~~,........"
@@ -170,11 +131,17 @@ echo ""
 echo -e "\033[31m(5)\033[0mVérifier votre version de clonezilla et la mettre à jour le cas échéant"
 echo ""
 echo ""
+
 creation_log
 echo ""
 echo -e "Entrer le \033[31mnumero\033[0m correspondant à votre choix ou \033[4mn'importe quoi\033[0m pour quitter, puis la touche entrée."
 
 read  choixlanceur
+else
+creation_log
+echo "vous avez choisi l'option  $valeur en passant par les options" >> "$LOG"
+fi
+
 }
 
 #----- -----
@@ -467,6 +434,7 @@ EOF
 
 choix_clonezilla()
 {
+#if [ CLONEZILLA
 echo " Vous devez choisir si vous voulez utiliser la version 32 bits (clonezilla), ou la version 64 bits (clonezilla64) "
 echo -e "Taper \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m puis appuyer sur entrée ."
 read CLONEZILLA
