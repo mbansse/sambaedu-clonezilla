@@ -60,7 +60,7 @@ PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
 
 
 
-################fonctions du script################## (à mettre dans un odre plus cohérent...plus tard!##################
+################fonctions du script################## (EN TESTS...ne marche pas en l'état)!##################
 recuperer_options()
 {
 suite_options="help"
@@ -125,7 +125,7 @@ touch /var/log/clonezilla-auto/$DATE
 LOG="/var/log/clonezilla-auto/$DATE"
 echo "Journal de l'opération du $DATE" >> "$LOG"
 echo "" >> "$LOG"
-echo " Le compte-rendu de l'opération sera écrit dans le fichier $LOG ."
+echo -e "\033[31m  Le compte-rendu de l'opération sera écrit dans le fichier $LOG .\033[0m "
 }
 
 
@@ -379,7 +379,7 @@ mkdir -p /var/se3/temp/
 cp /var/se3/clonezilla/filesystem.squashfs /var/se3/temp/
 mv /var/se3/clonezilla/filesystem.squashfs  /var/se3/clonezilla/filesystem.squashfs-sav
 cd /var/se3/temp/
-unsquashfs filesystem.squashfs
+unsquashfs filesystem.squashfs 2>> "$LOG"
 #le fichier filesystem est décompressé dans un sous-répertoire squashfs-root, le fichier  filesystem.squashfs n'est donc plus utile
 rm -f /var/se3/temp/filesystem.squashfs
 #on va ensuite ajouter au livecd un fichier credentials situé dans /root du livecd contenant login et mdp d'adminse3
@@ -393,7 +393,7 @@ EOF
 
 #On refabrique le fichier filesystem.squashfs
 cd /var/se3/temp/
-mksquashfs squashfs-root filesystem.squashfs -b 1024k -comp xz -Xbcj x86 -e boot
+mksquashfs squashfs-root filesystem.squashfs -b 1024k -comp xz -Xbcj x86 -e boot 2>> "$LOG"
 rm -Rf squashfs-root
 mv /var/se3/temp/filesystem.squashfs /var/se3/clonezilla/filesystem.squashfs
 chmod 444 /var/se3/clonezilla/filesystem.squashfs
@@ -407,7 +407,7 @@ mkdir -p /var/se3/temp/
 cp /var/se3/clonezilla64/filesystem.squashfs /var/se3/temp/
 mv /var/se3/clonezilla64/filesystem.squashfs  /var/se3/clonezilla64/filesystem.squashfs-sav
 cd /var/se3/temp/
-unsquashfs filesystem.squashfs
+unsquashfs filesystem.squashfs 2>> "$LOG"
 #le fichier filesystem est décompressé dans un sous-répertoire squashfs-root, le fichier  filesystem.squashfs n'est donc plus utile
 rm -f /var/se3/temp/filesystem.squashfs
 #on va ensuite ajouter au livecd un fichier credentials situé dans /root du livecd contenant login et mdp d'adminse3
@@ -421,7 +421,7 @@ EOF
 
 #On refabrique le fichier filesystem.squashfs
 cd /var/se3/temp/
-mksquashfs squashfs-root filesystem.squashfs -b 1024k -comp xz -e boot
+mksquashfs squashfs-root filesystem.squashfs -b 1024k -comp xz -e boot 2>> "$LOG"
 rm -Rf squashfs-root
 mv /var/se3/temp/filesystem.squashfs /var/se3/clonezilla64/filesystem.squashfs
 chmod 444 /var/se3/clonezilla64/filesystem.squashfs
@@ -508,13 +508,15 @@ montage_samba()
 {
 echo " le partage samba est monté provisoirement dans $LISTE_IMAGE"
 #le partage samba contenant les images est monté dans le répertoire liste_image juste pour établir le fichier  contenant la liste des images disponibles.
-mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP
+echo "Montage du partage samba" >> "$LOG"
+mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP 2>> "$LOG"
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
 echo "" >> "$LOG"
-echo "Montage du partage samba" >> "$LOG"
-echo "Echec du montage du partage samba, il faut vérifier les données entrées" >> "$LOG"
+echo "Résultat du montage du partage samba sur le se3" >> "$LOG"
+echo "Echec du montage du partage samba, il faut vérifier les données entrées et consulter le fichier de log pour en trouver la cause."
+echo "Echec du montage du partage samba, voir plus haut le message d'erreur affiché par la commande de montage." >> "$LOG"
 rm -Rf "$TEMP"
 exit
 else
@@ -537,7 +539,8 @@ echo "Voici la liste des images disponibles: $LISTE_IMAGES" >> "$LOG"
 read choix
 echo " image choisie par l'utilisateur: $choix" >> "$LOG"
 #On démonte le partage samba du se3
-umount  "$LISTE_IMAGE"
+echo "démontage du partage samba sur le se3" >> "$LOG"
+umount  "$LISTE_IMAGE"  2>> "$LOG"
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(cat $TEMP/liste |grep $choix)
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
