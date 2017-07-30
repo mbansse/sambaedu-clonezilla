@@ -71,10 +71,12 @@ echo " '--rappel_parc' (sans argument) pour obtenir un rappel des parcs de machi
 echo " '--arch' clonezilla64 pour la version  64 bits , ou '--arch clonezilla' pour la version 32 bits"
 echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
 echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
+echo " '--image' suivi du nom de l'image"
 echo " --noconfirm (sans argument)indique qu'aucune vérification n'est faite (nom de fichier, postes concernés,etc...), utilisation pour un mode  non interactif . "
 echo "quelques exemples d'utilisation:" 
 echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
 echo " ./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5, l'architecture est déclarée dans le fichier pxeperso)."
+echo "./clonezilla-auto.sh --mode 2 --parc s219-5  --arch clonezilla64 --image xp_from_adminse3 --noconfirm (ici on déploie l'image appelée xp_from_adminse3 sur un poste s219-4 avec clonezilla64 sans confirmation)"
 
 exit 1
 ;;
