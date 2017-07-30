@@ -68,12 +68,13 @@ echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonez
 echo " options disponibles:"
 echo " '--mode' suivi du numéro du choix à indiquer dans le menu de départ(ex --mode 2  pour le deuxième choix)"
 echo " '--rappel_parc' (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
-echo " '--arch' clonezilla64 pour la version  64 bits , ou "arch clonezilla" pour la version 32 bits"
+echo " '--arch' clonezilla64 pour la version  64 bits , ou '--arch clonezilla' pour la version 32 bits"
 echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
 echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
 echo " --noconfirm (sans argument)indique qu'aucune vérification n'est faite (nom de fichier, postes concernés,etc...), utilisation pour un mode  non interactif . "
+echo "quelques exemples d'utilisation:" 
 echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
-echo " ./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5)."
+echo " ./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5, l'architecture est déclarée dans le fichier pxeperso)."
 
 exit 1
 ;;
@@ -103,10 +104,10 @@ valeur4="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
 choix="$valeur4"
 ;;
 
-#image)
-#valeur4="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-#choix="$valeur4"
-#;;
+image)
+valeur5="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+choix="$valeur5"
+;;
 esac
 done
 
@@ -297,7 +298,7 @@ echo "Les postes doivent avoir le wakeonlan d'activé et un boot par défaut en 
 }
 accueil_pxeperso()
 {
-#On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire pxeperso
+#On demande à l'utilisateur quel fichier de  consigne pxe contenant les indications pour restaurer  parmi ceux qui sont présents dans le répertoire pxeperso
 # On affiche une liste des commandes personnalises dans le répertoire): on demande laquelle sera à appliquer:
 #il faudra donc creer un fichier commande-pxe pour chaque type de poste (appelé M72-tertaire par ex).
 if [ "$choix" = "" ] ; then
@@ -573,31 +574,46 @@ choix_image_se3()
 {
 
 
-
+if [ "$choix" = "" ]; then 
+#choix étant ide, il n'a pas été indiqué par option dans le script.
 # on vérifie qu'il y a bien une image à restaurer sur le partage (on va voir directement le contenu de /var/se3/partimag/).
-ls   "$LISTE_IMAGE"
-echo "Liste des imaes disponibles sur le se3: $LISTE_IMAGE" >> "$LOG"
-if [ "$LISTE_IMAGE" = ""  ]; then echo " pas d'image dans le répertoire /var/se3/partimag/"
+ls "$LISTE_IMAGE"
+
+echo "Liste des images disponibles" >> "$LOG"
+ls "$LISTE_IMAGE" >> "$LOG"
+ls "$LISTE_IMAGE" > "$TEMP"/liste 
+
+if [ "ls $LISTE_IMAGE" = ""  ]; then echo " pas d'image dans le répertoire /var/se3/partimag/"
 exit
 else
 clear
 echo -e "Recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
 fi
 
-
 #la liste des  images est écrite dans un fichier liste
 ls   "$LISTE_IMAGE"
 ls   "$LISTE_IMAGE" > "$TEMP"/liste
 read choix
 echo " image choisie par l'utilisateur: $choix" >> "$LOG"
+else
+echo "Liste des images disponibles sur le se3: $LISTE_IMAGE" >> "$LOG"
+echo "ls $LISTE_IMAGE" >> "$LOG"
+echo " image choisie par l'utilisateur: "$choix" en utilisant l'option --image "$choix""  >> "$LOG"
+ls   "$LISTE_IMAGE" > "$TEMP"/liste
+fi
+
+if [ "$NOCONFIRM" = "yes" ]; then 
+echo " Option --noconfirm ; il n'y a donc  pas de vérification sur le choix du nom de l'image à déployer. " >> "$LOG"
+else
 #On vérifie que ce qui a été tapé correspond bien à une image existante
-VERIF=$(cat $TEMP/liste |grep $choix)
+VERIF=$(cat "$TEMP"/liste |grep "$choix")
 if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le script est arrêté"
 #rm -Rf "$TEMP"
 exit
 else
 clear
 echo -e "L'image appelée \033[31m$choix \033[0m a été choisie."
+fi
 fi
 }
 
