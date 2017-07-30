@@ -43,12 +43,13 @@ DATE=`date +%Y-%m-%d-%H-%M`
 #création du répertoire /var/log/clonezilla-auto (utile seulement la première fois).
 mkdir -p /var/log/clonezilla-auto
 #variable  A ADAPTER A VOTRE SE3 et à décommenter
-PXE_PERSO="/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
+PXE_PERSO="/tftpboot/pxelinux.cfg/sambaedu-clonezilla/sources/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
 
 
 
 #options du script 
 #### EN TEST!!!!!######
+#L'idée est de pouvoir lancer en une seule ligne de commande une commande pxe, il suffira ensuite de créer une interface graphique en php contenant chaque argument d'option. 
 optspec=":-:"
 while getopts "$optspec" optchar; do
 case "${OPTARG}" in
@@ -57,10 +58,23 @@ echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonez
 echo " options disponibles:"
 echo " --mode 2 pour choisir de façon automatique le choix numéro deux du menu de départ" 
 echo " --rappel_parc (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
+echo " --arch clonezilla64 pour la version  64 bits , ou "arch clonezilla" pour la version 32 bits"
+echo " --parc suivi du nom du parc pour lancer le script sur un parc donné"
+echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
 exit 1
 ;;
 h)
-echo " Aide : voir la documentation (https://github.com/SambaEdu/se3-docs/blob/master/se3-clients-linux/options_scripts.md) associée."
+echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonezilla) associée."
+echo " options disponibles:"
+echo " '--mode' suivi du numéro du choix à indiquer dans le menu de départ(ex --mode 2  pour le deuxième choix)"
+echo " '--rappel_parc' (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
+echo " '--arch' clonezilla64 pour la version  64 bits , ou "arch clonezilla" pour la version 32 bits"
+echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
+echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
+echo " --noconfirm (sans argument)indique qu'aucune vérification n'est faite (nom de fichier, postes concernés,etc...), utilisation pour un mode  non interactif . "
+echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
+echo " ./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5)."
+
 exit 1
 ;;
 mode)
@@ -69,9 +83,30 @@ choixlanceur="$valeur"
 ;;
 rappel_parc)
 LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$ldap_base_dn|grep dn:|sed 's/.*cn=//'|sed 's/,ou.*//' |sed '1d' |sed 1n |sed 's/$/ /'| tr '\n' ' ' |sed 's/>%/>\n/g')
+echo "Voici la liste des parcs de machine séparés par un espace"
 echo "$LISTE_PARCS"
 exit 1
 ;;
+arch)
+valeur2="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+CLONEZILLA="$valeur2"
+;;
+noconfirm)
+NOCONFIRM=yes
+;;
+parc)
+valeur3="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+debutip="$valeur3"
+;;
+pxeperso)
+valeur4="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+choix="$valeur4"
+;;
+
+#image)
+#valeur4="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+#choix="$valeur4"
+#;;
 esac
 done
 
@@ -265,6 +300,7 @@ accueil_pxeperso()
 #On demande à l'utilisateur quelle image restaurer parmi celles qui sont présentes dans le répertoire pxeperso
 # On affiche une liste des commandes personnalises dans le répertoire): on demande laquelle sera à appliquer:
 #il faudra donc creer un fichier commande-pxe pour chaque type de poste (appelé M72-tertaire par ex).
+if [ "$choix" = "" ] ; then
 clear
 echo " Ce script permet d'envoyer une consigne de boot par pxe(par exemple restaurer une image clonezilla existante, faire une sauvegarde locale)  sur un/plusieurs postes"
 echo "Les postes doivent avoir le wakeonlan d'activé, un boot par défaut en pxe "
@@ -272,8 +308,16 @@ echo "recopier parmi la liste suivante la commande pxe à envoyer ( type d'image
 #la liste des fichiers de commande pxe est placée dans le répertoire pxeperso, son contenu va être lu ici.
 ls  "$PXE_PERSO"
 read choix
+else
+echo " Lancement de la commande pxeperso appelée "$choix" par option --pxeperso "$choix" " >> "$LOG"
+fi
+
 echo "" >> "$LOG"
 echo " Voux avez choisi la commande pxe-perso appelée $choix" >> "$LOG"
+
+if [ "$NOCONFIRM" = "yes" ]; then echo "aucune confirmation de l'exactitude du choix du pxeperso n'a été demandée par option --noconfirm  " >> "$LOG"
+else
+
 #On vérifie que ce qui a été tapé correspond bien à une image existante
 VERIF=$(ls "$PXE_PERSO" |grep "$choix")
 #si ce qui a été  tapé ne correspond à aucune ligne de la liste, alors le script s'arrête.
@@ -281,6 +325,7 @@ if [ "$VERIF" = ""  ]; then  echo "pas d'image choisie ou image inexistante, le 
 exit
 else
 echo "les commandes pxe personnalisées contenues dans  $choix seront envoyées sur les postes"
+fi
 fi
 }
 creation_partage()
@@ -434,12 +479,15 @@ EOF
 
 choix_clonezilla()
 {
-#if [ CLONEZILLA
+if [ "$CLONEZILLA" = ""  ]; then
 echo " Vous devez choisir si vous voulez utiliser la version 32 bits (clonezilla), ou la version 64 bits (clonezilla64) "
 echo -e "Taper \033[31mclonezilla\033[0m  ou   \033[31mclonezilla64\033[0m puis appuyer sur entrée ."
 read CLONEZILLA
 echo "" >> "$LOG"
 echo "Vous avez choisi la version $CLONEZILLA" >> "$LOG"
+else
+echo " version de clonezilla choisie par l'option arch $CLONEZILLA" >> "$LOG"
+fi
 }
 
 prealable_samba()
@@ -523,6 +571,8 @@ fi
 
 choix_image_se3()
 {
+
+
 
 # on vérifie qu'il y a bien une image à restaurer sur le partage (on va voir directement le contenu de /var/se3/partimag/).
 ls   "$LISTE_IMAGE"
@@ -611,7 +661,7 @@ label disk2
   localboot 0x81
 
 label clonezilla
-#MENU LABEL Clonezilla restore "$choix" (partimag)
+#MENU LABEL Clonezilla restore "$choix" (se3)
 KERNEL $CLONEZILLA/vmlinuz
 APPEND initrd=$CLONEZILLA/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$se3ip/partimag /home/partimag/ -o credentials=/root/credentials "  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/$CLONEZILLA/filesystem.squashfs
 
@@ -633,7 +683,7 @@ echo "" >> "$LOG"
 
 maj_machines()
 {
-#On génère le nouveau fichier d'inventaire d'après la branche computer ldap en lançant le script prévu à cet effet.
+#On génère le nouveau fichier d'inventaire d'après la branche computer ldap .
 echo "le script génère le nouveau fichier d'inventaire des machines( cela prendra quelques secondes)"
 
 ##### Script de génération du fichier de correspondance NOM;IP;MAC;PARCS #####
@@ -673,12 +723,18 @@ LISTE_PARCS=$(ldapsearch -xLLL  -b ou=Parcs,$ldap_base_dn|grep dn:|sed 's/.*cn=/
 
 choix_machines()
 {
+if [ "$debutip" = "" ]; then
+
 echo -e "\033[4mPour rappel, voici la liste des parcs\033[0m"
 echo "$LISTE_PARCS"
 echo""
 echo -e "Entrer \033[1mle nom du parc\033[0m (ex sciences) ou \033[1mles premiers octets\033[0m de l'ip du parc à cloner (ex 172.20.50.)\033[0m"
 echo -e "S'il faut restaurer seulement \033[1mun poste\033[0m, on entrera l'adresse ip (ex 172.20.50.101) ou le nom  du poste (ex s218-2)" 
 read debutip
+else
+echo "vous avez choisi comme parametre de recherche de machine: $debutip" >> "$LOG"
+fi
+
 echo "vous avez choisi comme parametre de recherche de machine: $debutip" >> "$LOG"
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
 cat  $TEMP/inventaire* |grep "$debutip" > "$TEMP"/exportauto
@@ -701,9 +757,14 @@ POSTES=$(cat "$TEMP"/verifpostes)
 clear
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES" = "" ]; then echo "aucun poste ne correspond à cette demande"
+echo "aucun poste ne correspond à cette demande" >> "$LOG"
 exit
 else echo "les postes suivants seront effacés puis restaurés. "
 echo -e "\033[34m"$POSTES"\033[0m"
+fi
+
+if [ "$NOCONFIRM" = "yes" ]; then echo "aucune confirmation n'a été demandée par option " >> "$LOG"
+else
 echo -e "taper \033[31moui\033[0m pour continuer ou \033[34mnano\033[0m pour éditer la liste des postes à restaurer"
 echo -e "Pour éditer la liste, il suffit de \033[31msupprimer les lignes entières inutiles \033[0m. On enregistre \033[31m(CTRL+O)\033[0m , suivi de quitter \033[31m(CTRL+X)\033[0m ." 
 read REPONSE
@@ -718,15 +779,24 @@ POSTES2=$(cat "$TEMP"/verifpostes2)
 echo " voici la liste des postes choisi après vérification" >> "$LOG"
 cat  "$TEMP"/verifpostes2 >> "$LOG"
 clear
+
+
 #si la liste des postes est vide, c'est qu'aucun ordinateur ne correspond à la demande
 if [ "$POSTES2" = "" ]; then echo "aucun poste ne correspond à cette demande"
+echo "aucun poste ne correspond à cette demande" >> "$LOG"
 exit
-else echo " Etes-vous sur de vouloir restaurer ces postes?"
+else echo " Plusieurs postes ont été séléctionnés" 
+fi
+
+if [ "$NOCONFIRM" = "yes" ]; then echo "aucune confirmation n'a été demandée par option " >> "$LOG"
+else
+echo ""
+echo " Etes-vous sur de vouloir restaurer ces postes?"
 echo -e "\033[31m "$POSTES2"\033[0m"
 echo -e " \033[4mATTENTION, le mdp du partag samba va apparaitre très brievement en clair sur l'écran des postes lors du montage automatique du serveur, veillez à ce que la salle soit vide\033[0m"
 echo -e "taper \033[31moui\033[0m pour continuer ou autre chose pour quitter"
 read REPONSE2
-fi
+
 
 # On continue le script uniquement si la réponse oui est faite. tout autre choix provoque l'arret du script.
 
@@ -737,6 +807,7 @@ echo "Vous n'avez pas répondu oui à la vérification, le clonage est annulé "
  #on efface les fichiers temporaires créés
 rm -f "$TEMP"/*
  exit  
+fi
 fi
 }
 
