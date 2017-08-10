@@ -139,7 +139,7 @@ PARTAGE="$valeur7"
 ;;
 user)
 valeur8="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-USER="$valeur8"
+UTILISATEUR="$valeur8"
 ;;
 mdp)
 valeur9="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
@@ -151,7 +151,7 @@ liste_image_samba)
 #listing_images_samba (fonction définie plus bas...donc non prise en charge
 mkdir -p /mnt/liste-image/
 LISTE_IMAGE="/mnt/liste-image/"
-mount -t cifs //"$IPSAMBA"/"$PARTAGE" "$LISTE_IMAGE" -o user="$USER",password="$MDP" 
+mount -t cifs //"$IPSAMBA"/"$PARTAGE" "$LISTE_IMAGE" -o user="$UTILISATEUR",password="$MDP" 
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
@@ -586,12 +586,12 @@ else
 echo "Nom du partage samba choisipar option --partage $PARTAGE" >> "$LOG"
 fi
 
-if [ "$USER" = ""  ]; then
+if [ "$UTILISATEUR" = ""  ]; then
 echo -e "\033[34mEntrer le nom d'un utilisateur autorisé à lire sur le partage\033[0m (ex clonezilla)"
-read USER
-echo "Nom d'utilisateur choisi pour lire les images dans le partage samba : $USER" >> "$LOG"
+read UTILISATEUR
+echo "Nom d'utilisateur choisi pour lire les images dans le partage samba : $UTILISATEUR" >> "$LOG"
 else
-echo "Nom d'utilisateur choisi pour lire les images dans le partage samba par option --user  $USER" >> "$LOG"
+echo "Nom d'utilisateur choisi pour lire les images dans le partage samba par option --user  $UTILISATEUR" >> "$LOG"
 fi
 
 if [ "$MDP" = ""  ]; then
@@ -605,7 +605,7 @@ montage_samba()
 echo " le partage samba est monté provisoirement dans $LISTE_IMAGE"
 #le partage samba contenant les images est monté dans le répertoire liste_image juste pour établir le fichier  contenant la liste des images disponibles.
 echo "Montage du partage samba" >> "$LOG"
-mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP 2>> "$LOG"
+mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$UTILISATEUR,password=$MDP 2>> "$LOG"
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
@@ -625,7 +625,7 @@ fi
 #on crée une fonction  permettant de faire simplement le listing des images placées sur le partage samba (utile en cas d'utilisattion en mode non interactif)
 listing_images_samba()
 {
-mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP 2>> "$LOG"
+mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$UTILISATEUR,password=$MDP 2>> "$LOG"
 #vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
 VERIFMONTAGE=$(mount |grep liste-image)
 if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
@@ -740,7 +740,7 @@ label disk2
 label clonezilla
 #MENU LABEL Clonezilla restore "$choix" (partimag)
 KERNEL $CLONEZILLA/vmlinuz
-APPEND initrd=$CLONEZILLA/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$IPSAMBA/$PARTAGE /home/partimag/ -o user=$USER,password=$MDP "  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/$CLONEZILLA/filesystem.squashfs
+APPEND initrd=$CLONEZILLA/initrd.img boot=live config noswap nolocales edd=on nomodeset  ocs_prerun="mount -t cifs //$IPSAMBA/$PARTAGE /home/partimag/ -o user=$UTILISATEUR,password=$MDP "  ocs_live_run="ocs-sr  -e1 auto -e2  -r -j2  -p reboot restoredisk  $choix sda" ocs_live_extra_param="" keyboard-layouts="fr" ocs_live_batch="no" locales="fr_FR.UTF-8" vga=788 nosplash noprompt fetch=tftp://$se3ip/$CLONEZILLA/filesystem.squashfs
 
 # Choix de boot par défaut:
 default clonezilla
