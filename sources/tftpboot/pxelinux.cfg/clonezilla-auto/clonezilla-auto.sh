@@ -42,6 +42,8 @@ DATE=`date +%Y-%m-%d-%H-%M`
 
 #création du répertoire /var/log/clonezilla-auto (utile seulement la première fois).
 mkdir -p /var/log/clonezilla-auto
+
+
 #variable  A ADAPTER A VOTRE SE3 et à décommenter
 PXE_PERSO="/tftpboot/pxelinux.cfg/sambaedu-clonezilla/sources/tftpboot/pxelinux.cfg/clonezilla-auto/pxeperso"
 
@@ -54,13 +56,25 @@ optspec=":-:"
 while getopts "$optspec" optchar; do
 case "${OPTARG}" in
    help)
-echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonezilla) associée." 
+echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonezilla) associée."
 echo " options disponibles:"
-echo " --mode 2 pour choisir de façon automatique le choix numéro deux du menu de départ" 
-echo " --rappel_parc (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
-echo " --arch clonezilla64 pour la version  64 bits , ou "arch clonezilla" pour la version 32 bits"
-echo " --parc suivi du nom du parc pour lancer le script sur un parc donné"
+echo " '--mode' suivi du numéro du choix à indiquer dans le menu de départ(ex --mode 2  pour le deuxième choix)"
+echo " '--rappel_parc' (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
+echo " '--arch' clonezilla64 pour la version  64 bits , ou '--arch clonezilla' pour la version 32 bits"
+echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
+echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
+echo " '--image' suivi du nom de l'image"
+echo " '--ipsamba' suivi de l'ip du partage samba (ex --ipsamba 172.20.0.6)"
+echo " '--partage' suivi du nom du partage samba (ex --partage partimag)."
+echo " '--user' suivi du nom de l'utilisateur autorisé à lire l'image (ex --user clonezilla)."
+echo " '--mdp' suivi du mot de passe de l'utilisateur précédent (ex --mdp mdp 123)."
+echo " '--liste_image_samba' pour obtenir l liste des images placées sur le partage samba. ATTENTION, les options ipsamba,user,partage et mdp doivent avoir été renseignées pour lancer cette option (ex --ipsamba 172.20.0.6 --partage partimag --user clonezilla --mdp mdp123 --liste_image_samba )."
+echo " --noconfirm (sans argument)indique qu'aucune vérification n'est faite (nom de fichier, postes concernés,etc...), utilisation pour un mode  non interactif . "
+echo "quelques exemples d'utilisation:"
 echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
+echo " ./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5, l'architecture est déclarée dans le fichier pxeperso)."
+echo "./clonezilla-auto.sh --mode 2 --parc s219-5  --arch clonezilla64 --image xp_from_adminse3 --noconfirm (ici on déploie l'image appelée xp_from_adminse3 sur un poste s219-4 avec clonezilla64 sans confirmation)"
+
 exit 1
 ;;
 h)
@@ -72,6 +86,11 @@ echo " '--arch' clonezilla64 pour la version  64 bits , ou '--arch clonezilla' p
 echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
 echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
 echo " '--image' suivi du nom de l'image"
+echo " '--ipsamba' suivi de l'ip du partage samba (ex --ipsamba 172.20.0.6)"
+echo " '--partage' suivi du nom du partage samba (ex --partage partimag)."
+echo " '--user' suivi du nom de l'utilisateur autorisé à lire l'image (ex --user clonezilla)."
+echo " '--mdp' suivi du mot de passe de l'utilisateur précédent (ex --mdp mdp 123)."
+echo " '--liste_image_samba' pour obtenir l liste des images placées sur le partage samba. ATTENTION, les options ipsamba,user,partage et mdp doivent avoir été renseignées pour lancer cette option (ex --ipsamba 172.20.0.6 --partage partimag --user clonezilla --mdp mdp123 --liste_image_samba )."
 echo " --noconfirm (sans argument)indique qu'aucune vérification n'est faite (nom de fichier, postes concernés,etc...), utilisation pour un mode  non interactif . "
 echo "quelques exemples d'utilisation:" 
 echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
@@ -110,6 +129,46 @@ image)
 valeur5="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
 choix="$valeur5"
 ;;
+ipsamba)
+valeur6="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+IPSAMBA="$valeur6"
+;;
+partage)
+valeur7="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+PARTAGE="$valeur7"
+;;
+user)
+valeur8="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+USER="$valeur8"
+;;
+mdp)
+valeur9="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+MDP="$valeur9"
+;;
+
+liste_image_samba)
+
+#listing_images_samba (fonction définie plus bas...donc non prise en charge
+mkdir -p /mnt/liste-image/
+LISTE_IMAGE="/mnt/liste-image/"
+mount -t cifs //"$IPSAMBA"/"$PARTAGE" "$LISTE_IMAGE" -o user="$USER",password="$MDP" 
+#vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
+VERIFMONTAGE=$(mount |grep liste-image)
+if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
+echo "Echec du montage du partage samba, il faut vérifier les données entrées et consulter le fichier de log pour en trouver la cause."
+exit
+else
+
+echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+echo " Montage du partage samba: Montage du partage samba réussi" 
+ls   "$LISTE_IMAGE"
+umount  "$LISTE_IMAGE"
+exit
+fi
+
+exit
+;;
+
 esac
 done
 
@@ -509,19 +568,37 @@ LISTE_IMAGE="/var/se3/partimag/"
 
 choix_samba()
 {
-#L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp
+#L'utilisateur doit entrer l'ip du partage samba, le nom du partage, le login de l'utilisateur et le mdp, sauf si les données ont été indiquées en options
+if [ "$IPSAMBA" = ""  ]; then
 echo "" 
 echo -e "\033[34mEntrer l'ip du partage samba\033[0m (ex  172.20.0.6)"
 read IPSAMBA
 echo "ip du partage samba choisi: $IPSAMBA" >> "$LOG"
+else
+echo "ip du partage samba choisi par option --ipsamba $IPSAMBA" >> "$LOG"
+fi
+
+if [ "$PARTAGE" = ""  ]; then
 echo -e "\033[34mEntrer le nom du partage samba\033[0m  (ex partimag) "
 read PARTAGE
 echo "Nom du partage samba choisi: $PARTAGE" >> "$LOG"
+else
+echo "Nom du partage samba choisipar option --partage $PARTAGE" >> "$LOG"
+fi
+
+if [ "$USER" = ""  ]; then
 echo -e "\033[34mEntrer le nom d'un utilisateur autorisé à lire sur le partage\033[0m (ex clonezilla)"
 read USER
 echo "Nom d'utilisateur choisi pour lire les images dans le partage samba : $USER" >> "$LOG"
+else
+echo "Nom d'utilisateur choisi pour lire les images dans le partage samba par option --user  $USER" >> "$LOG"
+fi
+
+if [ "$MDP" = ""  ]; then
 echo -e "\033[34mEntrer le mot de passe de l'utilisateur\033[0m  (le mot de passe n'apparait pas sur l'écran )"
 read -s MDP
+else echo "mot de passe entré  par option --mdp" >> "$LOG"
+fi
 }
 montage_samba()
 {
@@ -542,6 +619,28 @@ else
 clear
 echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
 echo " Montage du partage samba: Montage du partage samba réussi" >> "$LOG"
+fi
+}
+
+#on crée une fonction  permettant de faire simplement le listing des images placées sur le partage samba (utile en cas d'utilisattion en mode non interactif)
+listing_images_samba()
+{
+mount -t cifs //$IPSAMBA/$PARTAGE $LISTE_IMAGE -o user=$USER,password=$MDP 2>> "$LOG"
+#vérification que le montage s'est fait correctement (si le répertoire liste-image n'est pas monté, on quitte le script)
+VERIFMONTAGE=$(mount |grep liste-image)
+if [ "$VERIFMONTAGE" = ""  ]; then  echo " le montage de partage samba a échoué, veuillez vérifier les paramètres entrés puis relancer le script"
+echo "" >> "$LOG"
+echo "Résultat du montage du partage samba sur le se3" >> "$LOG"
+echo "Echec du montage du partage samba, il faut vérifier les données entrées et consulter le fichier de log pour en trouver la cause."
+echo "Echec du montage du partage samba, voir plus haut le message d'erreur affiché par la commande de montage." >> "$LOG"
+rm -Rf "$TEMP"
+exit
+else
+clear
+echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+echo " Montage du partage samba: Montage du partage samba réussi" >> "$LOG"
+ls   "$LISTE_IMAGE"
+exit
 fi
 }
 
