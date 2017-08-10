@@ -56,25 +56,33 @@ optspec=":-:"
 while getopts "$optspec" optchar; do
 case "${OPTARG}" in
    help)
-echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonezilla) associée."
+echo "Clonezilla-auto permet de lancer des commandes pxe à distance sur un ensemble de machine, ce qui va permettre de cloner des postes essentiellement"
+echo " Aide : voir la documentation (https://github.com/SambaEdu/sambaedu-clonezilla) associée (A FAIRE)."
+echo ""
+echo "Si le script est lancé sans option, il suffit de répondre aux questions posées interactivement.
+echo """
+echo "Pour gagner du temps ou lancer un clonage de façon non interactive, on peut donner des indications en options de ce script qui prend donc la forme ./clonezilla-auto --option1 valeur1 --option2 valeur2 --option3 valeur3 ..."
+echo ""
 echo " options disponibles:"
 echo " '--mode' suivi du numéro du choix à indiquer dans le menu de départ(ex --mode 2  pour le deuxième choix)"
 echo " '--rappel_parc' (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
 echo " '--arch' clonezilla64 pour la version  64 bits , ou '--arch clonezilla' pour la version 32 bits"
-echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
+echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné, ajouter \| (antislash et pipe) entre les parcs pour en séléctionner plusieurs ex: --parc s217\|s218\|s219 "
 echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
 echo " '--image' suivi du nom de l'image"
 echo " '--ipsamba' suivi de l'ip du partage samba (ex --ipsamba 172.20.0.6)"
 echo " '--partage' suivi du nom du partage samba (ex --partage partimag)."
 echo " '--user' suivi du nom de l'utilisateur autorisé à lire l'image (ex --user clonezilla)."
 echo " '--mdp' suivi du mot de passe de l'utilisateur précédent (ex --mdp mdp 123)."
-echo " '--liste_image_samba' pour obtenir l liste des images placées sur le partage samba. ATTENTION, les options ipsamba,user,partage et mdp doivent avoir été renseignées pour lancer cette option (ex --ipsamba 172.20.0.6 --partage partimag --user clonezilla --mdp mdp123 --liste_image_samba )."
+echo " '--liste_image_samba' pour obtenir à l'écran la liste des images placées sur le partage samba. ATTENTION, les options ipsamba,user,partage et mdp doivent avoir été renseignées pour lancer cette option (ex --ipsamba 172.20.0.6 --partage partimag --user clonezilla --mdp mdp123 --liste_image_samba )."
 echo " --noconfirm (sans argument)indique qu'aucune vérification n'est faite (nom de fichier, postes concernés,etc...), utilisation pour un mode  non interactif . "
+echo ""
 echo "quelques exemples d'utilisation:"
+echo ""
 echo "./clonezilla-auto.sh --mode 2 --arch clonezilla64 --parc virtualxp "
-echo " ./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5, l'architecture est déclarée dans le fichier pxeperso)."
+echo "./clonezilla-auto.sh --mode 4 --parc s219-5 --pxeperso client_multicast --noconfirm (ici la commande pxe appelée 'client_multicast' est envoyée sur le poste s219-5, l'architecture est déclarée dans le fichier pxeperso)."
 echo "./clonezilla-auto.sh --mode 2 --parc s219-5  --arch clonezilla64 --image xp_from_adminse3 --noconfirm (ici on déploie l'image appelée xp_from_adminse3 sur un poste s219-4 avec clonezilla64 sans confirmation)"
-
+echo "./clonezilla-auto.sh --mode 3 --arch clonezilla64 --ipsamba 172.20.0.6 --partage partimag --user clonezilla --mdp mdp123 --image xpv1  --parc 111\|110 --noconfirm"
 exit 1
 ;;
 h)
@@ -83,7 +91,7 @@ echo " options disponibles:"
 echo " '--mode' suivi du numéro du choix à indiquer dans le menu de départ(ex --mode 2  pour le deuxième choix)"
 echo " '--rappel_parc' (sans argument) pour obtenir un rappel des parcs de machine à l'écran"
 echo " '--arch' clonezilla64 pour la version  64 bits , ou '--arch clonezilla' pour la version 32 bits"
-echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné"
+echo " '--parc' suivi du nom du parc pour lancer le script sur un parc donné. Ajouter \| (antislash et pipe) entre les parcs pour en séléctionner plusieurs ex: --parc s217\|s218\|s219  "
 echo " '--pxeperso' suivi du nom du fichier pxe à lancer"
 echo " '--image' suivi du nom de l'image"
 echo " '--ipsamba' suivi de l'ip du partage samba (ex --ipsamba 172.20.0.6)"
@@ -177,11 +185,17 @@ done
 
 creation_log()
 {
-touch /var/log/clonezilla-auto/$DATE
-LOG="/var/log/clonezilla-auto/$DATE"
+mkdir -p /var/log/clonezilla-auto/"$DATE"
+mkdir -p /var/log/clonezilla-auto/"$DATE"/machine
+touch /var/log/clonezilla-auto/"$DATE"/"$DATE"
+#On met des droits de lecture/ecriture à root seulement
+chown root:root -R /var/log/clonezilla-auto/
+chmod 600 -R /var/log/clonezilla-auto/
+LOG="/var/log/clonezilla-auto/$DATE/$DATE"
 echo "Journal de l'opération du $DATE" >> "$LOG"
 echo "" >> "$LOG"
 echo -e "\033[31m  Le compte-rendu de l'opération sera écrit dans le fichier $LOG .\033[0m "
+
 }
 
 
@@ -617,7 +631,7 @@ rm -Rf "$TEMP"
 exit
 else
 clear
-echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+echo -e "le montage du partage samba est effectué dans $LISTE_IMAGE."
 echo " Montage du partage samba: Montage du partage samba réussi" >> "$LOG"
 fi
 }
@@ -637,7 +651,7 @@ rm -Rf "$TEMP"
 exit
 else
 clear
-echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+echo "le montage du partage samba est effectué dans $LISTE_IMAGE"
 echo " Montage du partage samba: Montage du partage samba réussi" >> "$LOG"
 ls   "$LISTE_IMAGE"
 exit
@@ -646,6 +660,8 @@ fi
 
 choix_image_samba()
 {
+if [ "$choix" = ""  ]; then
+
 echo "" >> "$LOG"
 echo " Choix d'une image à restaurer:" >> "$LOG"
 # on affiche la liste des images disponibles sur le partage.
@@ -654,6 +670,7 @@ ls   "$LISTE_IMAGE"
 ls   "$LISTE_IMAGE" > "$TEMP"/liste
 echo "" >> "$LOG"
 echo "Voici la liste des images disponibles: $LISTE_IMAGES" >> "$LOG"
+echo -e "le montage du partage samba est effectué,recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
 read choix
 echo " image choisie par l'utilisateur: $choix" >> "$LOG"
 #On démonte le partage samba du se3
@@ -668,6 +685,9 @@ exit
 else
 clear
 echo -e "L'image appelée \033[31m$choix \033[0m a été choisie."
+fi
+else
+echo "Image choisie par option --image $image" >> "$LOG"
 fi
 }
 
@@ -688,10 +708,11 @@ if [ "ls $LISTE_IMAGE" = ""  ]; then echo " pas d'image dans le répertoire /var
 exit
 else
 clear
-echo -e "Recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
+#echo -e "Recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
 fi
 
 #la liste des  images est écrite dans un fichier liste
+echo -e "Recopier parmi la liste suivante le \033[31m\033[1m NOM EXACT\033[0m  de l'image à restaurer."
 ls   "$LISTE_IMAGE"
 ls   "$LISTE_IMAGE" > "$TEMP"/liste
 read choix
@@ -847,6 +868,7 @@ echo "$LISTE_PARCS"
 echo""
 echo -e "Entrer \033[1mle nom du parc\033[0m (ex sciences) ou \033[1mles premiers octets\033[0m de l'ip du parc à cloner (ex 172.20.50.)\033[0m"
 echo -e "S'il faut restaurer seulement \033[1mun poste\033[0m, on entrera l'adresse ip (ex 172.20.50.101) ou le nom  du poste (ex s218-2)" 
+echo -e "On peut choisir plusieurs parcs en même temps en les séparant par un antislash suivi d'un pipe \033[1m\|\033[0m comme dans l'exemple suivant: s217\|s218\|s219"
 read debutip
 else
 echo "vous avez choisi comme parametre de recherche de machine: $debutip" >> "$LOG"
@@ -854,7 +876,7 @@ fi
 
 echo "vous avez choisi comme parametre de recherche de machine: $debutip" >> "$LOG"
 # on affiche uniquementt les entrées du fichier d'export contenant ce début d'ip
-cat  $TEMP/inventaire* |grep "$debutip" > "$TEMP"/exportauto
+cat  $TEMP/inventaire* |grep -E "$debutip" > "$TEMP"/exportauto
 #On a créé un fichier "exportauto" à partir du fichier d'inventaire dhcp qui contient quatre colonnes ip;nom-netbios;mac;parcs   (ex:172.20.50.101;virtualxp1;08:00:27:0e:5a:d0;m72e sciences) 
 echo "voici  le contenu du fichier exportauto qui contient les éléments  ip:nom:mac:parcs" >> "$LOG"
 cat  "$TEMP"/exportauto >> "$LOG"
@@ -947,7 +969,7 @@ cat "$TEMP"/postes >> "$LOG"
 
 # on modifie  le fichier liste1 pour remplacer les ":" par des "-" pour la création du fichier 01-suitedel'adressemac
 sed 's/\:/\-/g' "$TEMP"/liste1 > "$TEMP"/listeok
-cp "$TEMP"/listeok "$LOG"mac_tirets
+cp "$TEMP"/listeok "$LOG"-mac_tirets
 echo "Voici la liste des adresses mac avec des - " >> "$LOG"
 cat "$TEMP"/listeok >> "$LOG"
 
@@ -968,7 +990,7 @@ do
  
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp  "$TEMP"/pxe-perso /tftpboot/pxelinux.cfg/01-"$mac"
-cp  "$TEMP"/pxe-perso "$LOG"01-"$mac"-"$NOM_CLIENT"
+cp  "$TEMP"/pxe-perso /var/log/clonezilla-auto/"$DATE"/machine/01-"$mac"-"$NOM_CLIENT"
 chmod 644 /tftpboot/pxelinux.cfg/01-*
  
 
@@ -1003,7 +1025,7 @@ do
 #le fichier de commande pxe choisi pour les xp est copié dans le répertoire pxelinux.cfg. Il faut ajouter '01'-devant l'adresse mac
 cp "$PXE_PERSO"/"$choix" /tftpboot/pxelinux.cfg/01-"$mac"
 chmod 644  /tftpboot/pxelinux.cfg/01-*
-cp "$PXE_PERSO"/"$choix" "$LOG"/01-"$mac"-"$NOM_CLIENT"
+cp "$PXE_PERSO"/"$choix" /var/log/clonezilla-auto/"$DATE"/machine/01-"$mac"-"$NOM_CLIENT"
 
 
 #Il faut ensuite allumer le poste qui va donc détecter les instructions pxe.
