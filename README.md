@@ -2,6 +2,10 @@
 
 Ce script est fait pour être utilisé avec les serveurs se3 (sambaedu 3). Il utilise le logiciel libre 'clonezilla'.
 
+BRANCHE DE TEST!!!! NE PAS UTILISER EN PROD! 
+Script à utiliser situé sur https://github.com/SambaEdu/sambaedu-clonezilla
+
+
 Son principe est simple: Le script va créer un fichier ayant pour nom l'adresse mac d'un poste, le faire démarer/redémarrer. Celui-ci va donc consulter le se3, voir qu'un fichier le concerne et va donc effetuer une commande de boot PXE personnalisée.
 
 ## *Clonezilla-auto* va permettre plusieurs opérations:
